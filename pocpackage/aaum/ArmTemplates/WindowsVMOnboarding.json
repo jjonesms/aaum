@@ -1,0 +1,391 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "adminUsername": {
+            "type": "string"
+        },
+        "adminPassword": {
+            "type": "securestring"
+        },
+        "subnetName": {
+            "type": "string",
+            "defaultValue":"PoC-AAUM-VMS-Subnet01"
+        },
+        "vnetName": {
+            "type": "string",
+            "defaultValue" : "PoC-AAUM-Network"
+        },
+        "vm2012Count": {
+            "type": "int",
+             "defaultValue": 1
+        },
+        "vm2016Count": {
+            "type": "int",
+             "defaultValue": 2
+        },
+        "vm2019Count": {
+            "type": "int",
+             "defaultValue": 1
+        },
+        "vmSize": {
+            "type": "string",
+            "defaultValue":"Standard_D2_v3"
+        },
+        "workspaceId": {
+            "type": "string"
+        },
+        "workspaceKey": {
+            "type": "securestring"
+        },
+        "deployTime": {
+            "type": "string",
+            "defaultValue":"[utcNow()]"
+        }
+    },
+    "variables": {  
+
+ 
+        "subnetRef": "[resourceId('PoC-AAUM-Network-RG','Microsoft.Network/virtualNetworks/subnets',parameters('vnetName'),parameters('subnetName'))]",
+        "vm2012BaseName":"[concat('poc-win12-',substring(uniqueString(resourceGroup().id,parameters('deployTime')),1,3))]",
+        "vm2016BaseName":"[concat('poc-win16-',substring(uniqueString(resourceGroup().id,parameters('deployTime')),1,3))]",
+        "vm2019BaseName":"[concat('poc-win19-',substring(uniqueString(resourceGroup().id,parameters('deployTime')),1,3))]",
+        "vm2012sku":"2012-R2-Datacenter-smalldisk",
+        "vm2016sku":"2016-Datacenter-smalldisk",
+        "vm2019sku": "2019-Datacenter-smalldisk",
+        "vm2012NicBase": "[concat(variables('vm2012BaseName'), 'nic')]",
+        "vm2016NicBase": "[concat(variables('vm2016BaseName'), 'nic')]",
+        "vm2019NicBase": "[concat(variables('vm2019BaseName'), 'nic')]",
+        "tagName": "PoC-AAUM-Lifecycle",
+        "tagValue": "DevTest"
+
+
+    },
+    "resources": [
+        {
+            "name": "[concat(variables('vm2012NicBase'),copyIndex(1))]",
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2019-07-01",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "subnet": {
+                                "id": "[variables('subnetRef')]"
+                            },
+                            "privateIPAllocationMethod": "Dynamic"
+                        }
+                    }
+                ]
+            },
+            "copy": {
+                "name": "nicCopy",
+                "count":"[parameters('vm2012Count')]"
+            }
+        },
+        {
+            "name": "[concat(variables('vm2016NicBase'),copyIndex(1))]",
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2019-07-01",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "subnet": {
+                                "id": "[variables('subnetRef')]"
+                            },
+                            "privateIPAllocationMethod": "Dynamic"
+                        }
+                    }
+                ]
+            },
+            "copy": {
+                "name": "nicCopy",
+                "count":"[parameters('vm2016Count')]"
+            }
+        },
+        {
+            "name": "[concat(variables('vm2019NicBase'),copyIndex(1))]",
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2019-07-01",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "subnet": {
+                                "id": "[variables('subnetRef')]"
+                            },
+                            "privateIPAllocationMethod": "Dynamic"
+                        }
+                    }
+                ]
+            },
+            "copy": {
+                "name": "nicCopy",
+                "count":"[parameters('vm2019Count')]"
+            }
+        },
+        {
+            "name": "[concat(variables('vm2012BaseName'),copyIndex(1))]",
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "2019-07-01",
+            "location": "[resourceGroup().location]",
+            "tags": {
+                "[variables('tagName')]": "[variables('tagValue')]"
+            }
+            ,
+            "dependsOn": [
+                "[concat('Microsoft.Network/networkInterfaces/', variables('vm2012NicBase'), copyIndex(1))]"
+            ],
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "[parameters('vmSize')]"
+                },
+                "storageProfile": {
+                    "osDisk": {
+                        "createOption": "fromImage",
+                        "managedDisk": {
+                            "storageAccountType": "Standard_LRS"
+                        }
+                    },
+
+                    "imageReference": {
+                        "publisher": "MicrosoftWindowsServer",
+                        "offer": "WindowsServer",
+                        "sku": "[variables('vm2012sku')]",
+                        "version": "latest"
+                    }
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('vm2012NicBase'),copyIndex(1)))]"
+                        }
+                    ]
+                },
+                "osProfile": {
+                    "computerName": "[concat(variables('vm2012BaseName'),copyIndex(1))]",
+                    "adminUsername": "[parameters('adminUsername')]",
+                    "adminPassword": "[parameters('adminPassword')]",
+                    "windowsConfiguration": {
+                        "provisionVmAgent": true,
+                        "additionalUnattendContent": [
+                             {
+                                    "passName": "oobesystem",
+                                    "componentName": "Microsoft-Windows-Shell-Setup",
+                                    "settingName": "FirstLogonCommands",
+                                    "content": "<FirstLogonCommands><SynchronousCommand><CommandLine>reg add \"HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU\" /v AUOptions /t REG_DWORD /d 3 /f</CommandLine><Description></Description><Order>1</Order></SynchronousCommand><SynchronousCommand><CommandLine>reg add \"HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU\" /v NoAutoUpdate /t REG_DWORD /d 1 /f</CommandLine><Description></Description><Order>2</Order></SynchronousCommand></FirstLogonCommands>"
+                             }
+                        ]
+                    }
+                }
+            },
+            "copy": {
+                "name":"vmCopy",
+                "count":"[parameters('vm2012Count')]"
+            }
+        },
+        {
+            "name": "[concat(variables('vm2016BaseName'),copyIndex(1))]",
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "2019-07-01",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/networkInterfaces/', variables('vm2016NicBase'), copyIndex(1))]"
+            ],
+               "tags": {
+                "[variables('tagName')]": "[variables('tagValue')]"
+            },
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "[parameters('vmSize')]"
+                },
+                "storageProfile": {
+                    "osDisk": {
+                        "createOption": "fromImage",
+                        "managedDisk": {
+                            "storageAccountType": "Standard_LRS"
+                        }
+                    },
+
+                    "imageReference": {
+                        "publisher": "MicrosoftWindowsServer",
+                        "offer": "WindowsServer",
+                        "sku": "[variables('vm2016sku')]",
+                        "version": "latest"
+                    }
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('vm2016NicBase'),copyIndex(1)))]"
+                        }
+                    ]
+                },
+                "osProfile": {
+                    "computerName": "[concat(variables('vm2016BaseName'),copyIndex(1))]",
+                    "adminUsername": "[parameters('adminUsername')]",
+                    "adminPassword": "[parameters('adminPassword')]",
+                    "windowsConfiguration": {
+                        "provisionVmAgent": true,
+                        "additionalUnattendContent": [
+                             {
+                                    "passName": "oobesystem",
+                                    "componentName": "Microsoft-Windows-Shell-Setup",
+                                    "settingName": "FirstLogonCommands",
+                                    "content": "<FirstLogonCommands><SynchronousCommand><CommandLine>reg add \"HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU\" /v AUOptions /t REG_DWORD /d 3 /f</CommandLine><Description></Description><Order>1</Order></SynchronousCommand><SynchronousCommand><CommandLine>reg add \"HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU\" /v NoAutoUpdate /t REG_DWORD /d 1 /f</CommandLine><Description></Description><Order>2</Order></SynchronousCommand></FirstLogonCommands>"
+                             }
+                        ]
+                    }
+                }
+            },
+            "copy": {
+                "name":"vmCopy",
+                "count":"[parameters('vm2016Count')]"
+            }
+        },
+        {
+            "name": "[concat(variables('vm2019BaseName'),copyIndex(1))]",
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "2019-07-01",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/networkInterfaces/', variables('vm2019NicBase'), copyIndex(1))]"
+            ],
+               "tags": {
+                "[variables('tagName')]": "[variables('tagValue')]"
+            },
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "[parameters('vmSize')]"
+                },
+                "storageProfile": {
+                    "osDisk": {
+                        "createOption": "fromImage",
+                        "managedDisk": {
+                            "storageAccountType": "Standard_LRS"
+                        }
+                    },
+
+                    "imageReference": {
+                        "publisher": "MicrosoftWindowsServer",
+                        "offer": "WindowsServer",
+                        "sku": "[variables('vm2019sku')]",
+                        "version": "latest"
+                    }
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('vm2019NicBase'),copyIndex(1)))]"
+                        }
+                    ]
+                },
+                "osProfile": {
+                    "computerName": "[concat(variables('vm2019BaseName'),copyIndex(1))]",
+                    "adminUsername": "[parameters('adminUsername')]",
+                    "adminPassword": "[parameters('adminPassword')]",
+                    "windowsConfiguration": {
+                        "provisionVmAgent": true,
+                        "additionalUnattendContent": [
+                             {
+                                    "passName": "oobesystem",
+                                    "componentName": "Microsoft-Windows-Shell-Setup",
+                                    "settingName": "FirstLogonCommands",
+                                    "content": "<FirstLogonCommands><SynchronousCommand><CommandLine>reg add \"HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU\" /v AUOptions /t REG_DWORD /d 3 /f</CommandLine><Description></Description><Order>1</Order></SynchronousCommand><SynchronousCommand><CommandLine>reg add \"HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU\" /v NoAutoUpdate /t REG_DWORD /d 1 /f</CommandLine><Description></Description><Order>2</Order></SynchronousCommand></FirstLogonCommands>"
+                             }
+                        ]
+                    }
+                }
+            },
+            "copy": {
+                "name":"vmCopy",
+                "count":"[parameters('vm2019Count')]"
+            }
+        },
+       {
+        "type": "Microsoft.Compute/virtualMachines/extensions",
+        "name": "[concat(variables('vm2012BaseName'),copyIndex(1),'/','OMSExtension')]",
+        "apiVersion": "2019-07-01",
+        "location": "[resourceGroup().location]",
+        "dependsOn": [
+            "[concat('Microsoft.Compute/virtualMachines/', variables('vm2012BaseName'),copyIndex(1))]"
+        ],
+        "properties": {
+            "publisher": "Microsoft.EnterpriseCloud.Monitoring",
+            "type": "MicrosoftMonitoringAgent",
+            "typeHandlerVersion": "1.0",
+            "autoUpgradeMinorVersion": true,
+            "settings": {
+                "workspaceId": "[parameters('workspaceId')]"
+            },
+            "protectedSettings": {
+                "workspaceKey": "[parameters('workspaceKey')]"
+            }
+        },
+        "copy": {
+            "name": "agentCopy",
+            "count": "[parameters('vm2012Count')]"
+        }
+    },
+     {
+        "type": "Microsoft.Compute/virtualMachines/extensions",
+        "name": "[concat(variables('vm2016BaseName'),copyIndex(1),'/','OMSExtension')]",
+        "apiVersion": "2019-07-01",
+        "location": "[resourceGroup().location]",
+        "dependsOn": [
+            "[concat('Microsoft.Compute/virtualMachines/', variables('vm2016BaseName'),copyIndex(1))]"
+        ],
+        "properties": {
+            "publisher": "Microsoft.EnterpriseCloud.Monitoring",
+            "type": "MicrosoftMonitoringAgent",
+            "typeHandlerVersion": "1.0",
+            "autoUpgradeMinorVersion": true,
+            "settings": {
+                "workspaceId": "[parameters('workspaceId')]"
+            },
+            "protectedSettings": {
+                "workspaceKey": "[parameters('workspaceKey')]"
+            }
+        },
+        "copy": {
+            "name": "agentCopy",
+            "count": "[parameters('vm2016Count')]"
+        }
+    },
+     {
+        "type": "Microsoft.Compute/virtualMachines/extensions",
+        "name": "[concat(variables('vm2019BaseName'),copyIndex(1),'/','OMSExtension')]",
+        "apiVersion": "2019-07-01",
+        "location": "[resourceGroup().location]",
+        "dependsOn": [
+            "[concat('Microsoft.Compute/virtualMachines/', variables('vm2019BaseName'),copyIndex(1))]"
+        ],
+        "properties": {
+            "publisher": "Microsoft.EnterpriseCloud.Monitoring",
+            "type": "MicrosoftMonitoringAgent",
+            "typeHandlerVersion": "1.0",
+            "autoUpgradeMinorVersion": true,
+            "settings": {
+                "workspaceId": "[parameters('workspaceId')]"
+            },
+            "protectedSettings": {
+                "workspaceKey": "[parameters('workspaceKey')]"
+            }
+        },
+        "copy": {
+            "name": "agentCopy",
+            "count": "[parameters('vm2019Count')]"
+        }
+    }
+    
+
+    ],
+    "outputs": {}
+}

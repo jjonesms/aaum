@@ -1,0 +1,789 @@
+{
+    "version": "Notebook/1.0",
+    "items": [
+      {
+        "type": 1,
+        "content": {
+          "json": "** Author **\r\n Microsoft Services\r\n\r\n** Version 1.1 **\r\n2020-03-11\r\n- Grouped together the *Total missing updates by computer* tile and the related *List of all updates by selected computer* tile\r\n\r\n** Version 1.0 **\r\n2020-02-27\r\n - Initial version"
+        },
+        "conditionalVisibility": {
+          "parameterName": "_",
+          "comparison": "isEqualTo",
+          "value": "_"
+        },
+        "name": "text - 20"
+      },
+      {
+        "type": 1,
+        "content": {
+          "json": "# Update Assessment #"
+        },
+        "name": "text - 0"
+      },
+      {
+        "type": 9,
+        "content": {
+          "version": "KqlParameterItem/1.0",
+          "parameters": [
+            {
+              "id": "518320f6-9987-463f-890f-f180f1a5f43f",
+              "version": "KqlParameterItem/1.0",
+              "name": "DefaultWorkspace",
+              "type": 5,
+              "isRequired": true,
+              "value": "value::1",
+              "isHiddenWhenLocked": true,
+              "typeSettings": {
+                "resourceTypeFilter": {
+                  "microsoft.operationalinsights/workspaces": true
+                },
+                "additionalResourceOptions": [
+                  "value::1"
+                ]
+              }
+            },
+            {
+              "id": "3d71e43b-6a69-467f-b61d-725b234468d5",
+              "version": "KqlParameterItem/1.0",
+              "name": "ContextFree",
+              "type": 1,
+              "query": "{\"version\":\"1.0.0\",\"content\":\"\\\"{DefaultWorkspace}\\\"\"}",
+              "isHiddenWhenLocked": true,
+              "queryType": 8
+            },
+            {
+              "id": "4b197fa6-2730-430f-823e-5bd35daf3f75",
+              "version": "KqlParameterItem/1.0",
+              "name": "Selection",
+              "type": 1,
+              "query": "where type =~ 'microsoft.operationalinsights/workspaces'\r\n| extend match = strcat(\"'\", id, \"'\") =~ \"{DefaultWorkspace:value}\"\r\n| order by match desc, name asc\r\n| take 1\r\n| project value = tostring(pack('sub', subscriptionId, 'rg', resourceGroup, 'ws', id))",
+              "crossComponentResources": [
+                "value::selected"
+              ],
+              "isHiddenWhenLocked": true,
+              "queryType": 1,
+              "resourceType": "microsoft.resourcegraph/resources"
+            }
+          ],
+          "style": "pills",
+          "queryType": 1,
+          "resourceType": "microsoft.resourcegraph/resources"
+        },
+        "name": "parameters - 1"
+      },
+      {
+        "type": 9,
+        "content": {
+          "version": "KqlParameterItem/1.0",
+          "crossComponentResources": [
+            "{Subscriptions}"
+          ],
+          "parameters": [
+            {
+              "id": "99cc0623-1cf2-42ee-ae97-0e1321843c9d",
+              "version": "KqlParameterItem/1.0",
+              "name": "Subscriptions",
+              "type": 6,
+              "isRequired": true,
+              "multiSelect": true,
+              "quote": "'",
+              "delimiter": ",",
+              "query": "summarize by subscriptionId\r\n| project value = strcat('/subscriptions/', subscriptionId), label = subscriptionId, selected = iff(subscriptionId =~ todynamic('{Selection}').sub, true, false)",
+              "crossComponentResources": [
+                "value::selected"
+              ],
+              "typeSettings": {
+                "additionalResourceOptions": []
+              },
+              "queryType": 1,
+              "resourceType": "microsoft.resourcegraph/resources",
+              "value": []
+            },
+            {
+              "id": "e249244e-b556-4ecb-aae0-36843bc5a5a7",
+              "version": "KqlParameterItem/1.0",
+              "name": "Workspaces",
+              "type": 5,
+              "isRequired": true,
+              "multiSelect": true,
+              "quote": "'",
+              "delimiter": ",",
+              "query": "where type =~ 'microsoft.operationalinsights/workspaces'\r\n| summarize by id, name\r\n| project id, selected = iff(id =~ todynamic('{Selection}').ws, true, false)",
+              "crossComponentResources": [
+                "{Subscriptions}"
+              ],
+              "typeSettings": {
+                "additionalResourceOptions": [
+                  "value::all"
+                ],
+                "showDefault": false
+              },
+              "queryType": 1,
+              "resourceType": "microsoft.resourcegraph/resources"
+            },
+            {
+              "id": "5e8549d6-22aa-47e0-a84b-bf1848cd44cc",
+              "version": "KqlParameterItem/1.0",
+              "name": "TimeRange",
+              "type": 4,
+              "isRequired": true,
+              "value": {
+                "durationMs": 604800000
+              },
+              "typeSettings": {
+                "selectableValues": [
+                  {
+                    "durationMs": 300000
+                  },
+                  {
+                    "durationMs": 900000
+                  },
+                  {
+                    "durationMs": 1800000
+                  },
+                  {
+                    "durationMs": 3600000
+                  },
+                  {
+                    "durationMs": 14400000
+                  },
+                  {
+                    "durationMs": 43200000
+                  },
+                  {
+                    "durationMs": 86400000
+                  },
+                  {
+                    "durationMs": 172800000
+                  },
+                  {
+                    "durationMs": 259200000
+                  },
+                  {
+                    "durationMs": 604800000
+                  },
+                  {
+                    "durationMs": 1209600000
+                  },
+                  {
+                    "durationMs": 2419200000
+                  },
+                  {
+                    "durationMs": 2592000000
+                  },
+                  {
+                    "durationMs": 5184000000
+                  },
+                  {
+                    "durationMs": 7776000000
+                  }
+                ]
+              }
+            },
+            {
+              "id": "01b782de-6cb7-4c31-b6ad-0a502c604fbe",
+              "version": "KqlParameterItem/1.0",
+              "name": "Servers",
+              "type": 2,
+              "isRequired": true,
+              "multiSelect": true,
+              "quote": "'",
+              "delimiter": ",",
+              "query": "Update\r\n| distinct Computer\r\n| order by Computer desc",
+              "crossComponentResources": [
+                "{Workspaces}"
+              ],
+              "value": [
+                "value::all"
+              ],
+              "typeSettings": {
+                "additionalResourceOptions": [
+                  "value::all"
+                ]
+              },
+              "timeContext": {
+                "durationMs": 0
+              },
+              "timeContextFromParameter": "TimeRange",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces"
+            },
+            {
+              "id": "7d383415-a188-420b-bca8-7286db9d677f",
+              "version": "KqlParameterItem/1.0",
+              "name": "ExcludeByKBID",
+              "label": "Exclude by KB",
+              "type": 2,
+              "multiSelect": true,
+              "quote": "'",
+              "delimiter": ",",
+              "query": "Update\r\n| where Optional==false\r\n| where Approved!=false\r\n| where UpdateState == \"Needed\" \r\n| distinct KBID\r\n| order by toint(KBID) desc\r\n",
+              "crossComponentResources": [
+                "{Workspaces}"
+              ],
+              "value": [],
+              "typeSettings": {
+                "additionalResourceOptions": [
+                  "value::all"
+                ]
+              },
+              "timeContext": {
+                "durationMs": 0
+              },
+              "timeContextFromParameter": "TimeRange",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces"
+            },
+            {
+              "id": "8b1ce7d3-4e7f-474a-8fcd-90c00131977a",
+              "version": "KqlParameterItem/1.0",
+              "name": "ExcludeByPublishedDate",
+              "label": "Exclude by Published Date Month",
+              "type": 2,
+              "multiSelect": true,
+              "quote": "'",
+              "delimiter": ",",
+              "query": "Update \r\n| where Optional==false \r\n| where Approved!=false \r\n| where UpdateState == \"Needed\"\r\n| extend PublishedMonth= substring(tostring(PublishedDate),0,indexof(PublishedDate,\"-\",0,-1,2))\r\n| distinct PublishedMonth\r\n| order by PublishedMonth desc\r\n",
+              "crossComponentResources": [
+                "{Workspaces}"
+              ],
+              "value": [],
+              "typeSettings": {
+                "additionalResourceOptions": [
+                  "value::all"
+                ]
+              },
+              "timeContext": {
+                "durationMs": 0
+              },
+              "timeContextFromParameter": "TimeRange",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces"
+            },
+            {
+              "id": "6c8b0c26-2abe-47f8-b52e-96c5cb142492",
+              "version": "KqlParameterItem/1.0",
+              "name": "ExcludeByClassification",
+              "label": "Exclude by Classification",
+              "type": 2,
+              "multiSelect": true,
+              "quote": "'",
+              "delimiter": ",",
+              "query": "Update \r\n| where Optional==false \r\n| where Approved!=false \r\n| where UpdateState == \"Needed\" \r\n| distinct Classification\r\n| order by Classification desc\r\n ",
+              "crossComponentResources": [
+                "{Workspaces}"
+              ],
+              "typeSettings": {
+                "additionalResourceOptions": [
+                  "value::all"
+                ]
+              },
+              "timeContext": {
+                "durationMs": 0
+              },
+              "timeContextFromParameter": "TimeRange",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "value": []
+            }
+          ],
+          "style": "pills",
+          "queryType": 1,
+          "resourceType": "microsoft.resourcegraph/resources"
+        },
+        "name": "parameters - 2"
+      },
+      {
+        "type": 3,
+        "content": {
+          "version": "KqlItem/1.0",
+          "query": "let excludedPublishedDates = iif(\"{ExcludeByPublishedDate}\"==\"\", dynamic(['9999-01-01','9999-02-01']), dynamic([{ExcludeByPublishedDate}]));\r\nlet excludedKBID = iif(\"{ExcludeByKBID}\"==\"\", dynamic(['Blank','Blank2']), dynamic([{ExcludeByKBID}]));\r\nlet excludedClassification = iif(\"{ExcludeByClassification}\"==\"\", dynamic(['Blank3','Blank4']), dynamic([{ExcludeByClassification}]));Update\r\n| where Optional==false\r\n| where Approved!=false\r\n| where substring(PublishedDate,0,7) !in (excludedPublishedDates)\r\n| where KBID !in (excludedKBID)\r\n| where Classification !in (excludedClassification)\r\n| where Computer in ({Servers})\r\n| summarize hint.strategy=partitioned arg_max(TimeGenerated, *) by Computer, KBID, Classification\r\n| summarize nonCompl=countif(UpdateState==\"Needed\"), compl=countif(UpdateState!=\"Needed\") by Computer\r\n| extend status = iif((compl>0 and nonCompl==0),\"Compliant\",iif((nonCompl>0 and compl>0),\"Non-Compliant\",\"Compliance unknown\"))\r\n| summarize compliance = count() by status \r\n\r\n",
+          "size": 0,
+          "showAnalytics": true,
+          "title": "Update compliance status",
+          "noDataMessage": "No data for the selected conditions.",
+          "timeContext": {
+            "durationMs": 0
+          },
+          "timeContextFromParameter": "TimeRange",
+          "showExportToExcel": true,
+          "queryType": 0,
+          "resourceType": "microsoft.operationalinsights/workspaces",
+          "crossComponentResources": [
+            "{Workspaces}"
+          ],
+          "visualization": "piechart",
+          "gridSettings": {
+            "filter": true
+          },
+          "sortBy": [],
+          "tileSettings": {
+            "showBorder": false,
+            "titleContent": {
+              "columnMatch": "status",
+              "formatter": 1
+            },
+            "leftContent": {
+              "columnMatch": "compliance",
+              "formatter": 12,
+              "formatOptions": {
+                "palette": "auto"
+              },
+              "numberFormat": {
+                "unit": 17,
+                "options": {
+                  "maximumSignificantDigits": 3,
+                  "maximumFractionDigits": 2
+                }
+              }
+            }
+          },
+          "graphSettings": {
+            "type": 0,
+            "topContent": {
+              "columnMatch": "status",
+              "formatter": 1
+            },
+            "centerContent": {
+              "columnMatch": "compliance",
+              "formatter": 1,
+              "numberFormat": {
+                "unit": 17,
+                "options": {
+                  "maximumSignificantDigits": 3,
+                  "maximumFractionDigits": 2
+                }
+              }
+            }
+          },
+          "chartSettings": {
+            "seriesLabelSettings": [
+              {
+                "seriesName": "Non-Compliant",
+                "label": "Non-Compliant Computer(s)",
+                "color": "redBright"
+              },
+              {
+                "seriesName": "Compliant",
+                "label": "Compliant Computer(s)",
+                "color": "green"
+              }
+            ]
+          },
+          "mapSettings": {
+            "locInfo": "AzureResource",
+            "sizeSettings": "compliance",
+            "sizeAggregation": "Sum",
+            "legendMetric": "compliance",
+            "legendAggregation": "Sum",
+            "itemColorSettings": {
+              "type": "heatmap",
+              "colorAggregation": "Sum",
+              "nodeColorField": "compliance",
+              "heatmapPalette": "greenRed"
+            }
+          }
+        },
+        "customWidth": "40",
+        "showPin": true,
+        "name": "query - 6",
+        "styleSettings": {
+          "showBorder": true
+        }
+      },
+      {
+        "type": 3,
+        "content": {
+          "version": "KqlItem/1.0",
+          "query": "let excludedPublishedDates = iif(\"{ExcludeByPublishedDate}\"==\"\", dynamic(['9999-01-01','9999-02-01']), dynamic([{ExcludeByPublishedDate}]));\r\nlet excludedKBID = iif(\"{ExcludeByKBID}\"==\"\", dynamic(['Blank','Blank2']), dynamic([{ExcludeByKBID}]));\r\nlet excludedClassification = iif(\"{ExcludeByClassification}\"==\"\", dynamic(['Blank3','Blank4']), dynamic([{ExcludeByClassification}]));\r\nUpdate\r\n| where Optional==false\r\n| where Approved!=false\r\n| where substring(PublishedDate,0,7) !in (excludedPublishedDates)\r\n| where KBID !in (excludedKBID)\r\n| where Classification !in (excludedClassification)\r\n| where Computer in ({Servers})\r\n| summarize hint.strategy=partitioned arg_max(TimeGenerated, *) by Computer, KBID, Classification\r\n| summarize Updates_Count=countif(UpdateState==\"Needed\") by Classification\r\n| sort by Classification asc",
+          "size": 0,
+          "showAnalytics": true,
+          "title": "Total missing updates by Classification",
+          "noDataMessage": "No data for the selected conditions.",
+          "timeContext": {
+            "durationMs": 0
+          },
+          "timeContextFromParameter": "TimeRange",
+          "showExportToExcel": true,
+          "queryType": 0,
+          "resourceType": "microsoft.operationalinsights/workspaces",
+          "crossComponentResources": [
+            "{Workspaces}"
+          ],
+          "visualization": "barchart"
+        },
+        "customWidth": "60",
+        "showPin": true,
+        "name": "query - 0",
+        "styleSettings": {
+          "showBorder": true
+        }
+      },
+      {
+        "type": 12,
+        "content": {
+          "version": "NotebookGroup/1.0",
+          "groupType": "editable",
+          "items": [
+            {
+              "type": 3,
+              "content": {
+                "version": "KqlItem/1.0",
+                "query": "let excludedPublishedDates = iif(\"{ExcludeByPublishedDate}\"==\"\", dynamic(['9999-01-01','9999-02-01']), dynamic([{ExcludeByPublishedDate}]));\r\nlet excludedKBID = iif(\"{ExcludeByKBID}\"==\"\", dynamic(['Blank','Blank2']), dynamic([{ExcludeByKBID}]));\r\nlet excludedClassification = iif(\"{ExcludeByClassification}\"==\"\", dynamic(['Blank3','Blank4']), dynamic([{ExcludeByClassification}]));\r\nUpdate\r\n| where Optional==false\r\n| where Approved!=false\r\n| where substring(PublishedDate,0,7) !in (excludedPublishedDates)\r\n| where KBID !in (excludedKBID)\r\n| where Classification !in (excludedClassification)\r\n| where Computer in ({Servers})\r\n| summarize hint.strategy=partitioned arg_max(TimeGenerated, *) by Computer, KBID, Classification\r\n| where UpdateState == \"Needed\" \r\n| summarize Updates_Count=count() by Computer\r\n| order by Updates_Count desc",
+                "size": 0,
+                "showAnalytics": true,
+                "title": "Total missing updates by computer",
+                "noDataMessage": "No data for the selected conditions.",
+                "timeContext": {
+                  "durationMs": 0
+                },
+                "timeContextFromParameter": "TimeRange",
+                "exportFieldName": "Computer",
+                "exportParameterName": "row",
+                "exportDefaultValue": "",
+                "showExportToExcel": true,
+                "queryType": 0,
+                "resourceType": "microsoft.operationalinsights/workspaces",
+                "crossComponentResources": [
+                  "{Workspaces}"
+                ],
+                "visualization": "tiles",
+                "gridSettings": {
+                  "filter": true,
+                  "sortBy": [
+                    {
+                      "itemKey": "Computer",
+                      "sortOrder": 1
+                    }
+                  ]
+                },
+                "sortBy": [
+                  {
+                    "itemKey": "Computer",
+                    "sortOrder": 1
+                  }
+                ],
+                "tileSettings": {
+                  "titleContent": {
+                    "columnMatch": "Computer",
+                    "formatter": 1,
+                    "formatOptions": {
+                      "showIcon": true
+                    }
+                  },
+                  "leftContent": {
+                    "columnMatch": "Updates_Count",
+                    "formatter": 12,
+                    "formatOptions": {
+                      "palette": "auto",
+                      "linkTarget": "GenericDetails",
+                      "linkIsContextBlade": true,
+                      "showIcon": true
+                    },
+                    "numberFormat": {
+                      "unit": 17,
+                      "options": {
+                        "style": "decimal",
+                        "maximumFractionDigits": 2,
+                        "maximumSignificantDigits": 3
+                      }
+                    }
+                  },
+                  "showBorder": false
+                },
+                "graphSettings": {
+                  "type": 0,
+                  "topContent": {
+                    "columnMatch": "Computer",
+                    "formatter": 1
+                  },
+                  "centerContent": {
+                    "columnMatch": "Updates_Count",
+                    "formatter": 1,
+                    "numberFormat": {
+                      "unit": 17,
+                      "options": {
+                        "maximumSignificantDigits": 3,
+                        "maximumFractionDigits": 2
+                      }
+                    }
+                  }
+                }
+              },
+              "showPin": true,
+              "name": "query - 8"
+            },
+            {
+              "type": 1,
+              "content": {
+                "json": "💡 Click on the Computer name to see more details about missing updates."
+              },
+              "name": "text - 0",
+              "styleSettings": {
+                "showBorder": true
+              }
+            },
+            {
+              "type": 3,
+              "content": {
+                "version": "KqlItem/1.0",
+                "query": "//print nn=\"{row}\"\r\n//let selectedRow = dynamic({row});\r\n//print ppp = dynamic({row}), ppp2 = selectedRow.Computer, ppp3 = selectedRow.Updates_Count\r\nlet excludedPublishedDates = iif(\"{ExcludeByPublishedDate}\"==\"\", dynamic(['9999-01-01','9999-02-01']), dynamic([{ExcludeByPublishedDate}]));\r\nlet excludedKBID = iif(\"{ExcludeByKBID}\"==\"\", dynamic(['Blank','Blank2']), dynamic([{ExcludeByKBID}]));\r\nlet excludedClassification = iif(\"{ExcludeByClassification}\"==\"\", dynamic(['Blank3','Blank4']), dynamic([{ExcludeByClassification}]));\r\nUpdate\r\n| where Optional==false\r\n| where Approved!=false\r\n| where substring(PublishedDate,0,7) !in (excludedPublishedDates)\r\n| where KBID !in (excludedKBID)\r\n| where Classification !in (excludedClassification)\r\n| where Computer == tostring(\"{row}\")\r\n| summarize hint.strategy=partitioned arg_max(TimeGenerated, *) by Computer, KBID, Classification\r\n| where UpdateState == \"Needed\" \r\n| project TimeGenerated, Computer, UpdateState, Classification, KBID, Title, PublishedDate, Product, MSRCSeverity, RebootBehavior, Approved",
+                "size": 0,
+                "showAnalytics": true,
+                "title": "List of all updates by selected computer",
+                "timeContext": {
+                  "durationMs": 0
+                },
+                "timeContextFromParameter": "TimeRange",
+                "showExportToExcel": true,
+                "queryType": 0,
+                "resourceType": "microsoft.operationalinsights/workspaces",
+                "crossComponentResources": [
+                  "{Workspaces}"
+                ],
+                "visualization": "table",
+                "gridSettings": {
+                  "formatters": [
+                    {
+                      "columnMatch": "TimeGenerated",
+                      "formatter": 0,
+                      "formatOptions": {
+                        "showIcon": true
+                      }
+                    },
+                    {
+                      "columnMatch": "Computer",
+                      "formatter": 0,
+                      "formatOptions": {
+                        "showIcon": true
+                      }
+                    },
+                    {
+                      "columnMatch": "UpdateState",
+                      "formatter": 0,
+                      "formatOptions": {
+                        "showIcon": true
+                      }
+                    },
+                    {
+                      "columnMatch": "Classification",
+                      "formatter": 0,
+                      "formatOptions": {
+                        "showIcon": true
+                      }
+                    },
+                    {
+                      "columnMatch": "KBID",
+                      "formatter": 1,
+                      "formatOptions": {
+                        "linkTarget": "GenericDetails",
+                        "linkIsContextBlade": true,
+                        "showIcon": true
+                      }
+                    },
+                    {
+                      "columnMatch": "Title",
+                      "formatter": 5,
+                      "formatOptions": {
+                        "showIcon": true
+                      }
+                    },
+                    {
+                      "columnMatch": "PublishedDate",
+                      "formatter": 5,
+                      "formatOptions": {
+                        "showIcon": true
+                      }
+                    },
+                    {
+                      "columnMatch": "Product",
+                      "formatter": 5,
+                      "formatOptions": {
+                        "showIcon": true
+                      }
+                    },
+                    {
+                      "columnMatch": "MSRCSeverity",
+                      "formatter": 5,
+                      "formatOptions": {
+                        "showIcon": true
+                      }
+                    },
+                    {
+                      "columnMatch": "RebootBehavior",
+                      "formatter": 5,
+                      "formatOptions": {
+                        "showIcon": true
+                      }
+                    },
+                    {
+                      "columnMatch": "Approved",
+                      "formatter": 5,
+                      "formatOptions": {
+                        "showIcon": true
+                      }
+                    }
+                  ],
+                  "filter": true,
+                  "sortBy": [
+                    {
+                      "itemKey": "$gen_link_KBID_4",
+                      "sortOrder": 1
+                    }
+                  ]
+                },
+                "sortBy": [
+                  {
+                    "itemKey": "$gen_link_KBID_4",
+                    "sortOrder": 1
+                  }
+                ]
+              },
+              "conditionalVisibility": {
+                "parameterName": "row",
+                "comparison": "isNotEqualTo",
+                "value": ""
+              },
+              "showPin": true,
+              "name": "query - 9",
+              "styleSettings": {
+                "showBorder": true
+              }
+            }
+          ]
+        },
+        "name": "group - 11",
+        "styleSettings": {
+          "showBorder": true
+        }
+      },
+      {
+        "type": 3,
+        "content": {
+          "version": "KqlItem/1.0",
+          "query": "let excludedPublishedDates = iif(\"{ExcludeByPublishedDate}\"==\"\", dynamic(['9999-01-01','9999-02-01']), dynamic([{ExcludeByPublishedDate}]));\r\nlet excludedKBID = iif(\"{ExcludeByKBID}\"==\"\", dynamic(['Blank','Blank2']), dynamic([{ExcludeByKBID}]));\r\nlet excludedClassification = iif(\"{ExcludeByClassification}\"==\"\", dynamic(['Blank3','Blank4']), dynamic([{ExcludeByClassification}]));\r\nUpdate\r\n| where Optional==false\r\n| where Approved!=false\r\n| where substring(PublishedDate,0,7) !in (excludedPublishedDates)\r\n| where KBID !in (excludedKBID)\r\n| where Classification !in (excludedClassification)\r\n| where Computer in ({Servers})\r\n| summarize hint.strategy=partitioned arg_max(TimeGenerated, *) by Computer, KBID, Classification\r\n| where UpdateState == \"Needed\" \r\n| project TimeGenerated, Computer, UpdateState, Classification, KBID, Title, PublishedDate, Product, MSRCSeverity, RebootBehavior, Approved\r\n",
+          "size": 0,
+          "showAnalytics": true,
+          "title": "List of all updates needed",
+          "noDataMessage": "No data for the selected conditions.",
+          "timeContext": {
+            "durationMs": 0
+          },
+          "timeContextFromParameter": "TimeRange",
+          "showExportToExcel": true,
+          "queryType": 0,
+          "resourceType": "microsoft.operationalinsights/workspaces",
+          "crossComponentResources": [
+            "{Workspaces}"
+          ],
+          "visualization": "table",
+          "gridSettings": {
+            "formatters": [
+              {
+                "columnMatch": "TimeGenerated",
+                "formatter": 0,
+                "formatOptions": {
+                  "showIcon": true
+                }
+              },
+              {
+                "columnMatch": "Computer",
+                "formatter": 0,
+                "formatOptions": {
+                  "showIcon": true
+                }
+              },
+              {
+                "columnMatch": "UpdateState",
+                "formatter": 0,
+                "formatOptions": {
+                  "showIcon": true
+                }
+              },
+              {
+                "columnMatch": "Classification",
+                "formatter": 0,
+                "formatOptions": {
+                  "showIcon": true
+                }
+              },
+              {
+                "columnMatch": "KBID",
+                "formatter": 1,
+                "formatOptions": {
+                  "linkTarget": "GenericDetails",
+                  "linkIsContextBlade": true,
+                  "showIcon": true
+                }
+              },
+              {
+                "columnMatch": "Title",
+                "formatter": 5,
+                "formatOptions": {
+                  "showIcon": true
+                }
+              },
+              {
+                "columnMatch": "PublishedDate",
+                "formatter": 5,
+                "formatOptions": {
+                  "showIcon": true
+                }
+              },
+              {
+                "columnMatch": "Product",
+                "formatter": 5,
+                "formatOptions": {
+                  "showIcon": true
+                }
+              },
+              {
+                "columnMatch": "MSRCSeverity",
+                "formatter": 5,
+                "formatOptions": {
+                  "showIcon": true
+                }
+              },
+              {
+                "columnMatch": "RebootBehavior",
+                "formatter": 5,
+                "formatOptions": {
+                  "showIcon": true
+                }
+              },
+              {
+                "columnMatch": "Approved",
+                "formatter": 5,
+                "formatOptions": {
+                  "showIcon": true
+                }
+              }
+            ],
+            "filter": true,
+            "sortBy": [
+              {
+                "itemKey": "$gen_link_KBID_4",
+                "sortOrder": 1
+              }
+            ]
+          },
+          "sortBy": [
+            {
+              "itemKey": "$gen_link_KBID_4",
+              "sortOrder": 1
+            }
+          ]
+        },
+        "showPin": true,
+        "name": "Update Needed - Details"
+      },
+      {
+        "type": 1,
+        "content": {
+          "json": "💡 _Click on the KB number in KBID column to see more details._"
+        },
+        "name": "text - 7"
+      }
+    ],
+    "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
+  }

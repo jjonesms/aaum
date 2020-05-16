@@ -1,0 +1,206 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "automationAccountName": {
+            "type": "string",
+            "defaultValue":"PoC-AAUM-AutomationAccount"
+        },
+        "workspaceNamePrefix": {
+            "type": "string",
+            "defaultValue":"PoC-AAUM-Workspace-"
+
+        },
+        "workspaceLocation": {
+            "type": "string",
+            "allowedValues": [
+                "EastUS",
+                "WestUS2",
+                "CanadaCentral",
+                "AustraliaSoutheast",
+                "SoutheastAsia",
+                "CentralIndia",
+                "JapanEast",
+                "UKSouth",
+                "WestEurope",
+                "USGovVirginia"
+       ]
+        },
+        "pricingTier": {
+            "type": "string",
+            "defaultValue":"PerGB2018",
+            "allowedValues": [
+                "PerGB2018"
+            ]
+        },
+        "deployTime": {
+            "type": "string",
+            "defaultValue":"[utcNow()]"
+        }
+    },
+    "variables": {
+
+        "workspaceName": "[concat(parameters('workspaceNamePrefix'), substring(uniqueString(resourceGroup().id,parameters('deployTime')),1,4))]",
+        "Updates": {
+            "name": "[concat('Updates', '(', variables('workspaceName'), ')')]",
+            "galleryName": "Updates"
+        },
+        "ChangeTracking": {
+            "name": "[concat('ChangeTracking', '(', variables('workspaceName'), ')')]",
+            "galleryName": "ChangeTracking"
+        },
+        "AgentHealthAssessment": {
+            "name": "[concat('AgentHealthAssessment', '(', variables('workspaceName'), ')')]",
+            "galleryName": "AgentHealthAssessment"
+        },
+         "AzureActivity": {
+            "name": "[concat('AzureActivity', '(', variables('workspaceName'), ')')]",
+            "galleryName": "AzureActivity"
+        },
+        "automationAccountLocation":"[if(equals(parameters('workspaceLocation'),'EastUS'),'EastUS2',parameters('workspaceLocation'))]",
+        "storageAccountName": "[concat('pocaaumstr',substring(uniqueString(resourceGroup().id,parameters('deployTime')),1,4))]"
+    },
+    "resources": [
+     {
+            "name": "[variables('storageAccountName')]",
+            "type": "Microsoft.Storage/storageAccounts",
+            "apiVersion": "2019-06-01",
+            "location": "[variables('automationAccountLocation')]",
+            "properties": {
+                "accessTier": "Hot",
+                "supportsHttpsTrafficOnly": true
+            },
+            "dependsOn": [],
+            "sku": {
+                "name": "Standard_LRS"
+            },
+            "kind": "StorageV2",
+            "tags": {}
+        },
+        {
+            "name": "[parameters('automationAccountName')]",
+            "type": "Microsoft.Automation/automationAccounts",
+            "apiVersion": "2015-10-31",
+            "location": "[variables('automationAccountLocation')]",
+            "tags": {},
+            "properties": {
+                "sku": {
+                    "name": "Basic"
+                }    }
+        },
+        {
+                "name": "[variables('workspaceName')]",
+                "type": "Microsoft.OperationalInsights/workspaces",
+                "apiVersion": "2015-11-01-preview",
+                "location": "[parameters('workspaceLocation')]",
+                "properties": {
+                    "sku": {
+                        "name": "[parameters('pricingTier')]"
+                    }
+                },
+                "resources": [
+                {
+                        "name": "AzureActivityLog",
+                        "type": "datasources",
+                        "apiVersion": "2015-11-01-preview",
+                        "dependsOn": [
+                            "[concat('Microsoft.OperationalInsights/workspaces/', variables('workspaceName'))]"
+                        ],
+                        "kind": "AzureActivityLog",
+                        "properties": {
+                            "linkedResourceId": "[concat(subscription().id, '/providers/Microsoft.Insights/eventTypes/management')]"
+                        }
+                }
+            ]
+        },
+        {
+              "name": "[concat(variables('workspaceName'), '/', 'Automation')]",
+              "type": "Microsoft.OperationalInsights/workspaces/linkedServices",
+              "apiVersion": "2015-11-01-preview",
+              "dependsOn": [
+                  "[concat('Microsoft.OperationalInsights/workspaces/', variables('workspaceName'))]",
+                  "[concat('Microsoft.Automation/automationAccounts/', parameters('automationAccountName'))]"
+              ],
+              "properties": {
+                  "resourceId": "[resourceId('Microsoft.Automation/automationAccounts/', parameters('automationAccountName'))]"
+              }
+          },
+          {
+                "apiVersion": "2015-11-01-preview",
+                "location": "[parameters('workspaceLocation')]",
+                "name": "[variables('AgentHealthAssessment').name]",
+                "type": "Microsoft.OperationsManagement/solutions",
+                "id": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name, '/providers/Microsoft.OperationsManagement/solutions/', variables('AgentHealthAssessment').name)]",
+                "dependsOn": [
+                    "[concat('Microsoft.OperationalInsights/workspaces/', variables('workspaceName'))]"
+                ],
+                "properties": {
+                    "workspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces/', variables('workspaceName'))]"
+                },
+                "plan": {
+                    "name": "[variables('AgentHealthAssessment').name]",
+                    "publisher": "Microsoft",
+                    "promotionCode": "",
+                    "product": "[concat('OMSGallery/', variables('AgentHealthAssessment').galleryName)]"
+                }
+            },
+            {
+                "apiVersion": "2015-11-01-preview",
+                "location": "[parameters('workspaceLocation')]",
+                "name": "[variables('Updates').name]",
+                "type": "Microsoft.OperationsManagement/solutions",
+                "id": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name, '/providers/Microsoft.OperationsManagement/solutions/', variables('Updates').name)]",
+                "dependsOn": [
+                    "[concat('Microsoft.OperationalInsights/workspaces/', variables('workspaceName'))]"
+                ],
+                "properties": {
+                    "workspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces/', variables('workspaceName'))]"
+                },
+                "plan": {
+                    "name": "[variables('Updates').name]",
+                    "publisher": "Microsoft",
+                    "promotionCode": "",
+                    "product": "[concat('OMSGallery/', variables('Updates').galleryName)]"
+                }
+            },
+            {
+                "apiVersion": "2015-11-01-preview",
+                "location": "[parameters('workspaceLocation')]",
+                "name": "[variables('ChangeTracking').name]",
+                "type": "Microsoft.OperationsManagement/solutions",
+                "id": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name, '/providers/Microsoft.OperationsManagement/solutions/', variables('ChangeTracking').name)]",
+                "dependsOn": [
+                    "[concat('Microsoft.OperationalInsights/workspaces/', variables('workspaceName'))]"
+                ],
+                "properties": {
+                    "workspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces/', variables('workspaceName'))]"
+                },
+                "plan": {
+                    "name": "[variables('ChangeTracking').name]",
+                    "publisher": "Microsoft",
+                    "promotionCode": "",
+                    "product": "[concat('OMSGallery/', variables('ChangeTracking').galleryName)]"
+                }
+            },
+            {
+                "apiVersion": "2015-11-01-preview",
+                "location": "[parameters('workspaceLocation')]",
+                "name": "[variables('AzureActivity').name]",
+                "type": "Microsoft.OperationsManagement/solutions",
+                "id": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name, '/providers/Microsoft.OperationsManagement/solutions/', variables('AzureActivity').name)]",
+                "dependsOn": [
+                    "[concat('Microsoft.OperationalInsights/workspaces/', variables('workspaceName'))]"
+                ],
+                "properties": {
+                    "workspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces/', variables('workspaceName'))]"
+                },
+                "plan": {
+                    "name": "[variables('AzureActivity').name]",
+                    "publisher": "Microsoft",
+                    "promotionCode": "",
+                    "product": "[concat('OMSGallery/', variables('AzureActivity').galleryName)]"
+                }
+            }
+    ],
+    "outputs": {}
+}
