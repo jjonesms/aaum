@@ -3,18 +3,11 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "adminUsername": {
-            "type": "string"
+            "type": "string",
+            "defaultValue":"poc-win-user01"
         },
         "adminPassword": {
             "type": "securestring"
-        },
-        "subnetName": {
-            "type": "string",
-            "defaultValue":"PoC-AAUM-VMS-Subnet01"
-        },
-        "vnetName": {
-            "type": "string",
-            "defaultValue" : "PoC-AAUM-Network"
         },
         "vm2012Count": {
             "type": "int",
@@ -28,15 +21,40 @@
             "type": "int",
              "defaultValue": 1
         },
+        "imgVersion2012": {
+            "type": "string",
+            "defaultValue": "latest"
+        },
+        "imgVersion2016": {
+            "type": "string",
+            "defaultValue": "latest"
+        },
+        "imgVersion2019": {
+            "type": "string",
+            "defaultValue": "latest"
+        },
         "vmSize": {
             "type": "string",
             "defaultValue":"Standard_D2_v3"
         },
-        "workspaceId": {
+        "subnetName": {
+            "type": "string",
+            "defaultValue":"PoC-AAUM-VMS-Subnet01"
+        },
+        "vnetName": {
+            "type": "string",
+            "defaultValue" : "PoC-AAUM-Network"
+        },
+        "vnetRGName": {
+            "type": "string",
+            "defaultValue": "PoC-AAUM-Network-RG"
+        },
+        "workspaceName": {
             "type": "string"
         },
-        "workspaceKey": {
-            "type": "securestring"
+        "workspaceRGName": {
+            "type": "string",
+            "defaultValue":"PoC-AAUM-Mgmt-RG"
         },
         "deployTime": {
             "type": "string",
@@ -46,7 +64,7 @@
     "variables": {  
 
  
-        "subnetRef": "[resourceId('PoC-AAUM-Network-RG','Microsoft.Network/virtualNetworks/subnets',parameters('vnetName'),parameters('subnetName'))]",
+        "subnetRef": "[resourceId(parameters('vnetRGName'),'Microsoft.Network/virtualNetworks/subnets',parameters('vnetName'),parameters('subnetName'))]",
         "vm2012BaseName":"[concat('poc-win12-',substring(uniqueString(resourceGroup().id,parameters('deployTime')),1,3))]",
         "vm2016BaseName":"[concat('poc-win16-',substring(uniqueString(resourceGroup().id,parameters('deployTime')),1,3))]",
         "vm2019BaseName":"[concat('poc-win19-',substring(uniqueString(resourceGroup().id,parameters('deployTime')),1,3))]",
@@ -58,11 +76,10 @@
         "vm2019NicBase": "[concat(variables('vm2019BaseName'), 'nic')]",
         "tagName": "PoC-AAUM-Lifecycle",
         "tagValue": "DevTest"
-
-
     },
     "resources": [
         {
+            "condition": "[greater(parameters('vm2012Count'),0)]",
             "name": "[concat(variables('vm2012NicBase'),copyIndex(1))]",
             "type": "Microsoft.Network/networkInterfaces",
             "apiVersion": "2019-07-01",
@@ -85,7 +102,8 @@
                 "count":"[parameters('vm2012Count')]"
             }
         },
-        {
+        {   
+            "condition": "[greater(parameters('vm2016Count'),0)]",
             "name": "[concat(variables('vm2016NicBase'),copyIndex(1))]",
             "type": "Microsoft.Network/networkInterfaces",
             "apiVersion": "2019-07-01",
@@ -109,6 +127,7 @@
             }
         },
         {
+            "condition": "[greater(parameters('vm2019Count'),0)]",
             "name": "[concat(variables('vm2019NicBase'),copyIndex(1))]",
             "type": "Microsoft.Network/networkInterfaces",
             "apiVersion": "2019-07-01",
@@ -132,6 +151,7 @@
             }
         },
         {
+            "condition": "[greater(parameters('vm2012Count'),0)]",
             "name": "[concat(variables('vm2012BaseName'),copyIndex(1))]",
             "type": "Microsoft.Compute/virtualMachines",
             "apiVersion": "2019-07-01",
@@ -159,7 +179,7 @@
                         "publisher": "MicrosoftWindowsServer",
                         "offer": "WindowsServer",
                         "sku": "[variables('vm2012sku')]",
-                        "version": "latest"
+                        "version": "[parameters('imgVersion2012')]"
                     }
                 },
                 "networkProfile": {
@@ -192,6 +212,7 @@
             }
         },
         {
+            "condition": "[greater(parameters('vm2016Count'),0)]",
             "name": "[concat(variables('vm2016BaseName'),copyIndex(1))]",
             "type": "Microsoft.Compute/virtualMachines",
             "apiVersion": "2019-07-01",
@@ -218,7 +239,7 @@
                         "publisher": "MicrosoftWindowsServer",
                         "offer": "WindowsServer",
                         "sku": "[variables('vm2016sku')]",
-                        "version": "latest"
+                        "version": "[parameters('imgVersion2016')]"
                     }
                 },
                 "networkProfile": {
@@ -251,6 +272,7 @@
             }
         },
         {
+            "condition": "[greater(parameters('vm2019Count'),0)]",
             "name": "[concat(variables('vm2019BaseName'),copyIndex(1))]",
             "type": "Microsoft.Compute/virtualMachines",
             "apiVersion": "2019-07-01",
@@ -277,7 +299,7 @@
                         "publisher": "MicrosoftWindowsServer",
                         "offer": "WindowsServer",
                         "sku": "[variables('vm2019sku')]",
-                        "version": "latest"
+                        "version": "[parameters('imgVersion2019')]"
                     }
                 },
                 "networkProfile": {
@@ -310,6 +332,7 @@
             }
         },
        {
+        "condition": "[greater(parameters('vm2012Count'),0)]",
         "type": "Microsoft.Compute/virtualMachines/extensions",
         "name": "[concat(variables('vm2012BaseName'),copyIndex(1),'/','OMSExtension')]",
         "apiVersion": "2019-07-01",
@@ -323,10 +346,10 @@
             "typeHandlerVersion": "1.0",
             "autoUpgradeMinorVersion": true,
             "settings": {
-                "workspaceId": "[parameters('workspaceId')]"
+                "workspaceId": "[reference(resourceId(parameters('workspaceRGName'),'Microsoft.OperationalInsights/workspaces/', parameters('workspaceName')), '2015-03-20').customerId]"
             },
             "protectedSettings": {
-                "workspaceKey": "[parameters('workspaceKey')]"
+                "workspaceKey": "[listKeys(resourceId(parameters('workspaceRGName'),'Microsoft.OperationalInsights/workspaces/', parameters('workspaceName')), '2015-03-20').primarySharedKey]"
             }
         },
         "copy": {
@@ -335,6 +358,7 @@
         }
     },
      {
+         "condition": "[greater(parameters('vm2016Count'),0)]",
         "type": "Microsoft.Compute/virtualMachines/extensions",
         "name": "[concat(variables('vm2016BaseName'),copyIndex(1),'/','OMSExtension')]",
         "apiVersion": "2019-07-01",
@@ -348,10 +372,10 @@
             "typeHandlerVersion": "1.0",
             "autoUpgradeMinorVersion": true,
             "settings": {
-                "workspaceId": "[parameters('workspaceId')]"
+                "workspaceId": "[reference(resourceId(parameters('workspaceRGName'),'Microsoft.OperationalInsights/workspaces/', parameters('workspaceName')), '2015-03-20').customerId]"
             },
             "protectedSettings": {
-                "workspaceKey": "[parameters('workspaceKey')]"
+               "workspaceKey": "[listKeys(resourceId(parameters('workspaceRGName'),'Microsoft.OperationalInsights/workspaces/', parameters('workspaceName')), '2015-03-20').primarySharedKey]"
             }
         },
         "copy": {
@@ -360,6 +384,7 @@
         }
     },
      {
+         "condition": "[greater(parameters('vm2019Count'),0)]",
         "type": "Microsoft.Compute/virtualMachines/extensions",
         "name": "[concat(variables('vm2019BaseName'),copyIndex(1),'/','OMSExtension')]",
         "apiVersion": "2019-07-01",
@@ -373,17 +398,111 @@
             "typeHandlerVersion": "1.0",
             "autoUpgradeMinorVersion": true,
             "settings": {
-                "workspaceId": "[parameters('workspaceId')]"
+                 "workspaceId": "[reference(resourceId(parameters('workspaceRGName'),'Microsoft.OperationalInsights/workspaces/', parameters('workspaceName')), '2015-03-20').customerId]"
             },
             "protectedSettings": {
-                "workspaceKey": "[parameters('workspaceKey')]"
+                "workspaceKey": "[listKeys(resourceId(parameters('workspaceRGName'),'Microsoft.OperationalInsights/workspaces/', parameters('workspaceName')), '2015-03-20').primarySharedKey]"
             }
         },
         "copy": {
             "name": "agentCopy",
             "count": "[parameters('vm2019Count')]"
         }
+    },
+    {
+        "condition": "[greater(parameters('vm2012Count'),0)]",
+        "name": "[concat(variables('vm2012BaseName'), copyIndex(1), '/', 'customScript1')]",
+        "type": "Microsoft.Compute/virtualMachines/extensions",
+        "apiVersion": "2019-07-01",
+        "location": "[resourceGroup().location]",
+        "tags": {
+            "displayName": "customScript1 for Windows VM"
+        },
+        "dependsOn": [
+            "[concat('Microsoft.Compute/virtualMachines/',variables('vm2012BaseName'), copyIndex(1) )]"
+        ],
+        "properties": {
+            "publisher": "Microsoft.Compute",
+            "type": "CustomScriptExtension",
+            "typeHandlerVersion": "1.10",
+            "autoUpgradeMinorVersion": true,
+            "settings": {
+                "fileUris": [
+                    "[concat('https://raw.githubusercontent.com/jjonesms/aaum/master/aaum/', 'Scripts/Enable-MSProductUpdates.ps1')]"
+                ]
+            },
+            "protectedSettings": {
+                "commandToExecute": "powershell -ExecutionPolicy Bypass -file Enable-MSProductUpdates.ps1"
+            }
+        },
+        "copy": {
+            "name": "scriptCopy",
+            "count": "[parameters('vm2012Count')]"
+        }
+    },
+    {
+        "condition": "[greater(parameters('vm2016Count'),0)]",
+        "name": "[concat(variables('vm2016BaseName'), copyIndex(1), '/', 'customScript1')]",
+        "type": "Microsoft.Compute/virtualMachines/extensions",
+        "apiVersion": "2019-07-01",
+        "location": "[resourceGroup().location]",
+        "tags": {
+            "displayName": "customScript1 for Windows VM"
+        },
+        "dependsOn": [
+            "[concat('Microsoft.Compute/virtualMachines/',variables('vm2016BaseName'), copyIndex(1) )]"
+        ],
+        "properties": {
+            "publisher": "Microsoft.Compute",
+            "type": "CustomScriptExtension",
+            "typeHandlerVersion": "1.10",
+            "autoUpgradeMinorVersion": true,
+            "settings": {
+                "fileUris": [
+                    "[concat('https://raw.githubusercontent.com/jjonesms/aaum/master/aaum/', 'Scripts/Enable-MSProductUpdates.ps1')]"
+                ]
+            },
+            "protectedSettings": {
+                "commandToExecute": "powershell -ExecutionPolicy Bypass -file Enable-MSProductUpdates.ps1"
+            }
+        },
+        "copy": {
+            "name": "scriptCopy",
+            "count": "[parameters('vm2016Count')]"
+        }
+    },
+    {
+        "condition": "[greater(parameters('vm2019Count'),0)]",
+        "name": "[concat(variables('vm2019BaseName'), copyIndex(1), '/', 'customScript1')]",
+        "type": "Microsoft.Compute/virtualMachines/extensions",
+        "apiVersion": "2019-07-01",
+        "location": "[resourceGroup().location]",
+        "tags": {
+            "displayName": "customScript1 for Windows VM"
+        },
+        "dependsOn": [
+            "[concat('Microsoft.Compute/virtualMachines/',variables('vm2019BaseName'), copyIndex(1) )]"
+        ],
+        "properties": {
+            "publisher": "Microsoft.Compute",
+            "type": "CustomScriptExtension",
+            "typeHandlerVersion": "1.10",
+            "autoUpgradeMinorVersion": true,
+            "settings": {
+                "fileUris": [
+                    "[concat('https://raw.githubusercontent.com/jjonesms/aaum/master/aaum/', 'Scripts/Enable-MSProductUpdates.ps1')]"
+                ]
+            },
+            "protectedSettings": {
+                "commandToExecute": "powershell -ExecutionPolicy Bypass -file Enable-MSProductUpdates.ps1"
+            }
+        },
+        "copy": {
+            "name": "scriptCopy",
+            "count": "[parameters('vm2019Count')]"
+        }
     }
+
     
 
     ],

@@ -1,0 +1,47 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "adminUsername": {
+            "value": "poc-win-user01"
+        },
+        "vmSize": {
+            "value":"Standard_D2_v3"
+        },
+        "vm2012Count": {
+            "value": 1
+        },
+        "vm2016Count": {
+            "value": 2
+        },
+        "vm2019Count": {
+            "value": 1
+        },
+        "imgVersion2012": {
+            "value": "latest"
+        },
+        "imgVersion2016": {
+            "value": "latest"
+        },
+        "imgVersion2019": {
+         "value": "latest"
+        },
+        "subnetName": {
+            "value":"PoC-AAUM-VMS-Subnet01"
+        },
+        "vnetName": {
+            "value" : "PoC-AAUM-Network"
+        },
+        "vnetRGName": {
+            "value": "PoC-AAUM-Network-RG"
+        },
+        "workspaceName": {
+            "value": "PoC-AAUM-Workspace-<add suffix>"
+        },
+        "workspaceRGName": {
+            "value":"PoC-AAUM-Mgmt-RG"
+        }
+        
+
+    }
+}
