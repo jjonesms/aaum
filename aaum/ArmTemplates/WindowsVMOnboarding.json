@@ -9,6 +9,13 @@
         "adminPassword": {
             "type": "securestring"
         },
+        "workspaceName": {
+            "type": "string"
+        },
+        "workspaceRGName": {
+            "type": "string",
+            "defaultValue":"PoC-AAUM-Mgmt-RG"
+        },
         "vm2012Count": {
             "type": "int",
              "defaultValue": 1
@@ -48,13 +55,6 @@
         "vnetRGName": {
             "type": "string",
             "defaultValue": "PoC-AAUM-Network-RG"
-        },
-        "workspaceName": {
-            "type": "string"
-        },
-        "workspaceRGName": {
-            "type": "string",
-            "defaultValue":"PoC-AAUM-Mgmt-RG"
         },
         "deployTime": {
             "type": "string",
