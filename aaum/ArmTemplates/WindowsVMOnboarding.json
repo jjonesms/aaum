@@ -200,7 +200,7 @@
                                     "passName": "oobesystem",
                                     "componentName": "Microsoft-Windows-Shell-Setup",
                                     "settingName": "FirstLogonCommands",
-                                    "content": "<FirstLogonCommands><SynchronousCommand><CommandLine>reg add \"HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU\" /v AUOptions /t REG_DWORD /d 3 /f</CommandLine><Description></Description><Order>1</Order></SynchronousCommand><SynchronousCommand><CommandLine>reg add \"HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU\" /v NoAutoUpdate /t REG_DWORD /d 1 /f</CommandLine><Description></Description><Order>2</Order></SynchronousCommand></FirstLogonCommands>"
+                                    "content": "<FirstLogonCommands><SynchronousCommand><CommandLine>reg add \"HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU\" /v AUOptions /t REG_DWORD /d 3 /f</CommandLine><Description></Description><Order>1</Order></SynchronousCommand></FirstLogonCommands>"
                              }
                         ]
                     }
@@ -260,7 +260,7 @@
                                     "passName": "oobesystem",
                                     "componentName": "Microsoft-Windows-Shell-Setup",
                                     "settingName": "FirstLogonCommands",
-                                    "content": "<FirstLogonCommands><SynchronousCommand><CommandLine>reg add \"HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU\" /v AUOptions /t REG_DWORD /d 3 /f</CommandLine><Description></Description><Order>1</Order></SynchronousCommand><SynchronousCommand><CommandLine>reg add \"HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU\" /v NoAutoUpdate /t REG_DWORD /d 1 /f</CommandLine><Description></Description><Order>2</Order></SynchronousCommand></FirstLogonCommands>"
+                                    "content": "<FirstLogonCommands><SynchronousCommand><CommandLine>reg add \"HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU\" /v AUOptions /t REG_DWORD /d 3 /f</CommandLine><Description></Description><Order>1</Order></SynchronousCommand></FirstLogonCommands>"
                              }
                         ]
                     }
@@ -320,7 +320,7 @@
                                     "passName": "oobesystem",
                                     "componentName": "Microsoft-Windows-Shell-Setup",
                                     "settingName": "FirstLogonCommands",
-                                    "content": "<FirstLogonCommands><SynchronousCommand><CommandLine>reg add \"HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU\" /v AUOptions /t REG_DWORD /d 3 /f</CommandLine><Description></Description><Order>1</Order></SynchronousCommand><SynchronousCommand><CommandLine>reg add \"HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU\" /v NoAutoUpdate /t REG_DWORD /d 1 /f</CommandLine><Description></Description><Order>2</Order></SynchronousCommand></FirstLogonCommands>"
+                                    "content": "<FirstLogonCommands><SynchronousCommand><CommandLine>reg add \"HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU\" /v AUOptions /t REG_DWORD /d 3 /f</CommandLine><Description></Description><Order>1</Order></SynchronousCommand></FirstLogonCommands>"
                              }
                         ]
                     }
