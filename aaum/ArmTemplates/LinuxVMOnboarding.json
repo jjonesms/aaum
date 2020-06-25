@@ -9,13 +9,6 @@
         "adminPassword": {
             "type": "securestring"
         },
-         "workspaceName": {
-            "type": "string"
-        },
-        "workspaceRGName": {
-            "type": "string",
-            "defaultValue":"PoC-AAUM-Mgmt-RG"
-        },
         "vmSize": {
             "type": "string",
             "defaultValue":"Standard_D2_v3"
@@ -36,29 +29,25 @@
             "type": "string",
             "defaultValue": "latest"
         },
-        "subnetName": {
-            "type": "string",
-            "defaultValue":"PoC-AAUM-VMS-Subnet01"
-        },
-        "vnetName": {
-            "type": "string",
-            "defaultValue" : "PoC-AAUM-Network"
-        },
-        "vnetRGName": {
-            "type": "string",
-            "defaultValue": "PoC-AAUM-Network-RG"
-        },
         "deployTime": {
             "type": "string",
             "defaultValue":"[utcNow()]"
         }
     },
     "variables": {  
+
+        "resourceGroupValues":"[split(resourceGroup().name,'-')]",
+        "uniqueValue":"[variables('resourceGroupValues')[3]]",
+        "workspaceName":"[concat('PoC-AAUM-Workspace-',variables('uniqueValue'))]",
+        "workspaceRGName":"[concat('PoC-AAUM-Mgmt-',variables('uniqueValue'),'-RG')]",
+        "vnetRGName":"[concat('PoC-AAUM-Network-',variables('uniqueValue'),'-RG')]",
+        "vnetName":"[concat('PoC-AAUM-Network-',variables('uniqueValue'))]",
+        "subnetName":"PoC-AAUM-VMS-Subnet01",
         "vmUb18BaseName": "[concat('poc-ub18-',substring(uniqueString(resourceGroup().id,parameters('deployTime')),1,3))]",
         "vmUb16BaseName":  "[concat('poc-ub16-',substring(uniqueString(resourceGroup().id,parameters('deployTime')),1,3))]",
         "vmUb18Nic":"[concat(variables('vmUb18BaseName'), '-nic')]" ,
         "vmUb16Nic":"[concat(variables('vmUb16BaseName'), '-nic')]",
-        "subnetRef": "[resourceId(parameters('vnetRGName'),'Microsoft.Network/virtualNetworks/subnets',parameters('vnetName'),parameters('subnetName'))]",
+        "subnetRef": "[resourceId(variables('vnetRGName'),'Microsoft.Network/virtualNetworks/subnets',variables('vnetName'),variables('subnetName'))]",
         "tagName": "PoC-AAUM-Lifecycle",
         "tagValue": "DevTest"
     },
@@ -222,10 +211,10 @@
                 "autoUpgradeMinorVersion": true,
                 "typeHandlerVersion": "1.0",
                 "settings": {
-                    "workspaceId": "[reference(resourceId(parameters('workspaceRGName'),'Microsoft.OperationalInsights/workspaces/', parameters('workspaceName')), '2015-03-20').customerId]"
+                    "workspaceId": "[reference(resourceId(variables('workspaceRGName'),'Microsoft.OperationalInsights/workspaces/', variables('workspaceName')), '2015-03-20').customerId]"
                 },
                 "protectedSettings": {
-                    "workspaceKey": "[listKeys(resourceId(parameters('workspaceRGName'),'Microsoft.OperationalInsights/workspaces/', parameters('workspaceName')), '2015-03-20').primarySharedKey]"
+                    "workspaceKey": "[listKeys(resourceId(variables('workspaceRGName'),'Microsoft.OperationalInsights/workspaces/', variables('workspaceName')), '2015-03-20').primarySharedKey]"
                 }
             },
             "copy": {
@@ -248,10 +237,10 @@
                 "autoUpgradeMinorVersion": true,
                 "typeHandlerVersion": "1.0",
                 "settings": {
-                    "workspaceId": "[reference(resourceId(parameters('workspaceRGName'),'Microsoft.OperationalInsights/workspaces/', parameters('workspaceName')), '2015-03-20').customerId]"
+                    "workspaceId": "[reference(resourceId(variables('workspaceRGName'),'Microsoft.OperationalInsights/workspaces/', variables('workspaceName')), '2015-03-20').customerId]"
                 },
                 "protectedSettings": {
-                    "workspaceKey": "[listKeys(resourceId(parameters('workspaceRGName'),'Microsoft.OperationalInsights/workspaces/', parameters('workspaceName')), '2015-03-20').primarySharedKey]"
+                    "workspaceKey": "[listKeys(resourceId(variables('workspaceRGName'),'Microsoft.OperationalInsights/workspaces/', variables('workspaceName')), '2015-03-20').primarySharedKey]"
                 }
             },
             "copy": {

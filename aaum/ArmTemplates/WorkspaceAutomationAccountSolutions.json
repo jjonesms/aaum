@@ -2,9 +2,9 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "automationAccountName": {
+        "automationAccountNamePrefix": {
             "type": "string",
-            "defaultValue":"PoC-AAUM-AutomationAccount"
+            "defaultValue":"PoC-AAUM-AutomationAccount-"
         },
         "workspaceNamePrefix": {
             "type": "string",
@@ -40,7 +40,10 @@
     },
     "variables": {
 
-        "workspaceName": "[concat(parameters('workspaceNamePrefix'), substring(uniqueString(resourceGroup().id,parameters('deployTime')),1,4))]",
+        "resourceGroupValues":"[split(resourceGroup().name,'-')]",
+        "uniqueValue":"[variables('resourceGroupValues')[3]]",
+        "workspaceName": "[concat(parameters('workspaceNamePrefix'),variables('uniqueValue') )]",
+        "automationAccountName": "[concat(parameters('automationAccountNamePrefix'),variables('uniqueValue'))]",
         "Updates": {
             "name": "[concat('Updates', '(', variables('workspaceName'), ')')]",
             "galleryName": "Updates"
@@ -58,7 +61,7 @@
             "galleryName": "AzureActivity"
         },
         "automationAccountLocation":"[if(equals(parameters('workspaceLocation'),'EastUS'),'EastUS2',parameters('workspaceLocation'))]",
-        "storageAccountName": "[concat('pocaaumstr',substring(uniqueString(resourceGroup().id,parameters('deployTime')),1,4))]"
+        "storageAccountName": "[concat('pocaaumstr',variables('uniqueValue'))]"
     },
     "resources": [
      {
@@ -78,7 +81,7 @@
             "tags": {}
         },
         {
-            "name": "[parameters('automationAccountName')]",
+            "name": "[variables('automationAccountName')]",
             "type": "Microsoft.Automation/automationAccounts",
             "apiVersion": "2015-10-31",
             "location": "[variables('automationAccountLocation')]",
@@ -119,10 +122,10 @@
               "apiVersion": "2015-11-01-preview",
               "dependsOn": [
                   "[concat('Microsoft.OperationalInsights/workspaces/', variables('workspaceName'))]",
-                  "[concat('Microsoft.Automation/automationAccounts/', parameters('automationAccountName'))]"
+                  "[concat('Microsoft.Automation/automationAccounts/', variables('automationAccountName'))]"
               ],
               "properties": {
-                  "resourceId": "[resourceId('Microsoft.Automation/automationAccounts/', parameters('automationAccountName'))]"
+                  "resourceId": "[resourceId('Microsoft.Automation/automationAccounts/', variables('automationAccountName'))]"
               }
           },
           {
@@ -202,5 +205,14 @@
                 }
             }
     ],
-    "outputs": {}
+    "outputs": {
+        "automationAccountName": {
+            "type": "string",
+            "value": "[variables('automationAccountName')]"
+        },
+        "workspaceName": {
+            "type": "string",
+            "value":"[variables('workspaceName')]"
+        }
+    }
 }

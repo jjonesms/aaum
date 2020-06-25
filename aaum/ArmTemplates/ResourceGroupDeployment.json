@@ -1,0 +1,180 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "mgmtResourceGroupPrefix": {
+            "type": "string",
+            "defaultValue": "PoC-AAUM-Mgmt-"
+        },
+        "mgmtResourceGroupLocation": {
+            "type": "string",
+            "allowedValues": [
+                "eastus",
+                "westus2",
+                "canadacentral",
+                "australiasoutheast",
+                "southeastasia",
+                "centralindia",
+                "japaneast",
+                "uksouth",
+                "westeurope",
+                "usgovvirginia"
+            ]
+        },
+        "networkResourceGroupPrefix": {
+            "type": "string",
+            "defaultValue": "PoC-AAUM-Network-"
+        },
+        "networkResourceGroupLocation": {
+            "type": "string",
+            "allowedValues": [
+                "eastus",
+                "eastus2",
+                "southcentralus",
+                "westus2",
+                "australiaeast",
+                "southeastasia",
+                "northeurope",
+                "uksouth",
+                "westeurope",
+                "centralus",
+                "northcentralus",
+                "westus",
+                "southafricanorth",
+                "centralindia",
+                "eastasia",
+                "japaneast",
+                "koreacentral",
+                "canadacentral",
+                "francecentral",
+                "germanywestcentral",
+                "norwayeast",
+                "switzerlandnorth",
+                "uaenorth",
+                "brazilsouth",
+                "usgovvirginia",
+                "usgovarizona",
+                "usgovtexas"
+
+            ]
+        },
+        "vmsResourceGroupPrefix": {
+            "type": "string",
+            "defaultValue": "PoC-AAUM-VMS-"
+        },
+        "policyName":
+        {
+            "type": "string",
+            "defaultValue":"[newGuid()]"
+        },
+        "deployTime": {
+            "type": "string",
+            "defaultValue": "[utcNow()]"
+        }
+    },
+    "variables": {
+         "uniqueValue":"[substring(uniqueString(subscription().id,parameters('deployTime')),1,4)]",
+         "mgmtResourceGroupName": "[concat(parameters('mgmtResourceGroupPrefix'), variables('uniqueValue'), '-RG')]",
+         "networkResourceGroupName": "[concat(parameters('networkResourceGroupPrefix'), variables('uniqueValue'), '-RG')]",
+         "vmsResourceGroupName": "[concat(parameters('vmsResourceGroupPrefix'), variables('uniqueValue'), '-RG')]"
+
+    },
+    "resources": [
+
+        {
+            "type": "Microsoft.Resources/resourceGroups",
+            "apiVersion": "2018-05-01",
+            "name": "[variables('mgmtResourceGroupName')]",
+            "location": "[parameters('mgmtResourceGroupLocation')]"
+        },
+        {
+            "type": "Microsoft.Resources/resourceGroups",
+            "apiVersion": "2018-05-01",
+            "name": "[variables('networkResourceGroupName')]",
+            "location": "[parameters('networkResourceGroupLocation')]"
+        },
+        {
+            "type": "Microsoft.Resources/resourceGroups",
+            "apiVersion": "2018-05-01",
+            "name": "[variables('vmsResourceGroupName')]",
+            "location": "[parameters('networkResourceGroupLocation')]"
+        },
+        {
+           "name": "nestedDeployment1",
+           "type": "Microsoft.Resources/deployments",
+           "apiVersion": "2019-10-01",
+           "resourceGroup": "[variables('vmsResourceGroupName')]",
+           "dependsOn": [
+                "[concat('Microsoft.Resources/resourceGroups/',variables('vmsResourceGroupName'))]"
+           ],
+           "properties": {
+               "mode": "Incremental",
+               "expressionEvaluationOptions": {
+                    "scope": "inner"
+                },
+               "template": {
+                   "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                   "contentVersion": "1.0.0.0",
+                   "parameters": {
+                       "policyScope": {
+                           "type": "string"
+                       },
+                       "policyName": {
+                           "type": "string"
+                       }
+                   },
+                   "variables": {},
+                   "resources": [
+                     {
+                        "type": "Microsoft.Authorization/policyAssignments",
+                        "apiVersion": "2019-09-01",
+                        "name":"[parameters('policyName')]",
+                        "properties": {
+                            "scope": "[parameters('policyScope')]",
+                            "policyDefinitionId": "/providers/Microsoft.Authorization/policyDefinitions/a70ca396-0a34-413a-88e1-b956c1e683be",
+                            "displayName": "[concat('(',resourceGroup().name, ')-', 'Audit-Log Analytics Agent Exists and Reports to Workspace')]"
+                        }
+                    }
+                   ]
+                    
+               },
+               "parameters": {
+                   "policyScope":{
+                       "value":"[subscriptionResourceId('Microsoft.Resources/resourceGroups',variables('vmsResourceGroupName'))]"
+                   },
+                   "policyName":{
+                       "value":"[parameters('policyName')]"
+                   }
+               }
+           }
+       }
+
+
+    ],
+    "outputs": {
+        "uniqueValue": {
+            "type": "string",
+            "value": "[variables('uniqueValue')]"
+        },
+        "vmsResourceGroupId": {
+            "type": "string",
+            "value": "[subscriptionResourceId('Microsoft.Resources/resourceGroups',variables('vmsResourceGroupName'))]"
+        },
+         "mgmtResourceGroupId": {
+            "type": "string",
+            "value": "[subscriptionResourceId('Microsoft.Resources/resourceGroups',variables('mgmtResourceGroupName'))]"
+        },
+         "networkResourceGroupId": {
+            "type": "string",
+            "value": "[subscriptionResourceId('Microsoft.Resources/resourceGroups',variables('networkResourceGroupName'))]"
+        },
+        "workspaceName": {
+            "type": "string",
+            "value":"[concat('PoC-AAUM-Workspace-', variables('uniqueValue'))]"
+        },
+        "automationAccountName": {
+            "type": "string",
+            "value":"[concat('PoC-AAUM-AutomationAccount-', variables('uniqueValue'))]"
+        }
+    }
+}

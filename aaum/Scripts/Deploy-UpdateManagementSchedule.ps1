@@ -10,7 +10,7 @@
 
 
     .PARAMETER automationAccountName
-        If the default Automation Account name is used, then this does not need to be specified
+        The automation account used during the PoC exercise
     .PARAMETER rgName
         Resource group name for the Automation Account
     .PARAMETER minutesFromNow
@@ -37,8 +37,8 @@
 
 [CmdletBinding()]
 param(
-    [string]$automationAccountName = 'PoC-AAUM-AutomationAccount',
-    [string]$rgName = 'PoC-AAUM-Mgmt-RG',
+    [string]$automationAccountName,
+    [string]$rgName,
     [int]$minutesFromNow = 45,
     [string]$deployOS = 'Windows'
 )

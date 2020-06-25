@@ -8,15 +8,19 @@
         }
     },
     "variables": {  
-        "virtualNetworkName": "PoC-AAUM-Network",
+
+        "resourceGroupValues":"[split(resourceGroup().name,'-')]",
+        "uniqueValue":"[variables('resourceGroupValues')[3]]",
+        "virtualNetworkName": "[concat('PoC-AAUM-Network-',variables('uniqueValue'))]",
         "subnetName": "PoC-AAUM-VMS-Subnet01",
-        "bastionPIPName": "PoC-AAUM-Bastion-PIP",
+        "bastionPIPName": "[concat('PoC-AAUM-Bastion-PIP-',variables('uniqueValue'))]",
         "bastionSubnetName":"AzureBastionSubnet",
-        "bastionName":"PoC-AAUM-BastionHost",
+        "bastionName":"[concat('PoC-AAUM-BastionHost-',variables('uniqueValue'))]",
+        "bastionNSG": "[concat('PoC-AAUM-BastionHost-NSG-',variables('uniqueValue'))]",
         "addressPrefixes":"192.168.0.0/23",
         "bastionSubnetAddressPrefix":"192.168.0.0/27",
-        "vmsSubnetaddressPrefix": "192.168.0.32/27",
-        "bastionNSG": "PoC-AAUM-BastionHost-NSG"
+        "vmsSubnetaddressPrefix": "192.168.0.32/27"
+        
     },
     "resources": [
     {
