@@ -70,8 +70,18 @@ $startTime = (get-date).AddMinutes($minutesFromNow).ToString("HH:mm")
 $dynamicGroupQuery = New-AzAutomationUpdateManagementAzureQuery -ResourceGroupName $rgName  -AutomationAccountName $automationAccountName -Scope $queryScope -Tag $envTag -Verbose
 $AzureQueries = @($dynamicGroupQuery)
 
-$schedule = New-AzAutomationSchedule -Name $scheduleName -TimeZone $TimeZone -AutomationAccountName $automationAccountName -StartTime $startTime -OneTime -ResourceGroupName $rgName -ForUpdateConfiguration -Verbose
+$schedule = New-AzAutomationSchedule `
+  -Name $scheduleName 
+  -TimeZone $TimeZone 
+  -AutomationAccountName $automationAccountName 
+  -StartTime $startTime 
+  -OneTime  
+  -ResourceGroupName $rgName 
+  -ForUpdateConfiguration 
+  -Verbose
 
+ # Set schedule to be in disabled state
+  Set-AzAutomationSchedule -IsEnabled $false -Name $scheduleName -AutomationAccountName $automationAccountName -ResourceGroupName $rgName
 
 if($deployOS -match 'Windows'){
     

@@ -183,14 +183,7 @@
                     "adminPassword": "[parameters('adminPassword')]",
                     "windowsConfiguration": {
                         "provisionVmAgent": true,
-                        "additionalUnattendContent": [
-                             {
-                                    "passName": "oobesystem",
-                                    "componentName": "Microsoft-Windows-Shell-Setup",
-                                    "settingName": "FirstLogonCommands",
-                                    "content": "<FirstLogonCommands><SynchronousCommand><CommandLine>reg add \"HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU\" /v AUOptions /t REG_DWORD /d 3 /f</CommandLine><Description></Description><Order>1</Order></SynchronousCommand></FirstLogonCommands>"
-                             }
-                        ]
+                        "enableAutomaticUpdates": false
                     }
                 }
             },
@@ -243,14 +236,7 @@
                     "adminPassword": "[parameters('adminPassword')]",
                     "windowsConfiguration": {
                         "provisionVmAgent": true,
-                        "additionalUnattendContent": [
-                             {
-                                    "passName": "oobesystem",
-                                    "componentName": "Microsoft-Windows-Shell-Setup",
-                                    "settingName": "FirstLogonCommands",
-                                    "content": "<FirstLogonCommands><SynchronousCommand><CommandLine>reg add \"HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU\" /v AUOptions /t REG_DWORD /d 3 /f</CommandLine><Description></Description><Order>1</Order></SynchronousCommand></FirstLogonCommands>"
-                             }
-                        ]
+                        "enableAutomaticUpdates": false
                     }
                 }
             },
@@ -303,14 +289,7 @@
                     "adminPassword": "[parameters('adminPassword')]",
                     "windowsConfiguration": {
                         "provisionVmAgent": true,
-                        "additionalUnattendContent": [
-                             {
-                                    "passName": "oobesystem",
-                                    "componentName": "Microsoft-Windows-Shell-Setup",
-                                    "settingName": "FirstLogonCommands",
-                                    "content": "<FirstLogonCommands><SynchronousCommand><CommandLine>reg add \"HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU\" /v AUOptions /t REG_DWORD /d 3 /f</CommandLine><Description></Description><Order>1</Order></SynchronousCommand></FirstLogonCommands>"
-                             }
-                        ]
+                        "enableAutomaticUpdates": false
                     }
                 }
             },
@@ -416,11 +395,11 @@
             "autoUpgradeMinorVersion": true,
             "settings": {
                 "fileUris": [
-                    "[concat('https://raw.githubusercontent.com/jjonesms/aaum/master/aaum/', 'Scripts/Enable-MSProductUpdates.ps1')]"
+                    "[concat('https://raw.githubusercontent.com/jjonesms/aaum/master/aaum/', 'Scripts/Enable-WindowsAndMSUpdates.ps1')]"
                 ]
             },
             "protectedSettings": {
-                "commandToExecute": "powershell -ExecutionPolicy Bypass -file Enable-MSProductUpdates.ps1"
+                "commandToExecute": "powershell -ExecutionPolicy Bypass -file Enable-WindowsAndMSUpdates.ps1"
             }
         },
         "copy": {
@@ -447,11 +426,11 @@
             "autoUpgradeMinorVersion": true,
             "settings": {
                 "fileUris": [
-                    "[concat('https://raw.githubusercontent.com/jjonesms/aaum/master/aaum/', 'Scripts/Enable-MSProductUpdates.ps1')]"
+                    "[concat('https://raw.githubusercontent.com/jjonesms/aaum/master/aaum/', 'Scripts/Enable-WindowsAndMSUpdates.ps1')]"
                 ]
             },
             "protectedSettings": {
-                "commandToExecute": "powershell -ExecutionPolicy Bypass -file Enable-MSProductUpdates.ps1"
+                "commandToExecute": "powershell -ExecutionPolicy Bypass -file Enable-WindowsAndMSUpdates.ps1"
             }
         },
         "copy": {
@@ -478,11 +457,11 @@
             "autoUpgradeMinorVersion": true,
             "settings": {
                 "fileUris": [
-                    "[concat('https://raw.githubusercontent.com/jjonesms/aaum/master/aaum/', 'Scripts/Enable-MSProductUpdates.ps1')]"
+                    "[concat('https://raw.githubusercontent.com/jjonesms/aaum/master/aaum/', 'Scripts/Enable-WindowsAndMSUpdates.ps1')]"
                 ]
             },
             "protectedSettings": {
-                "commandToExecute": "powershell -ExecutionPolicy Bypass -file Enable-MSProductUpdates.ps1"
+                "commandToExecute": "powershell -ExecutionPolicy Bypass -file Enable-WindowsAndMSUpdates.ps1"
             }
         },
         "copy": {

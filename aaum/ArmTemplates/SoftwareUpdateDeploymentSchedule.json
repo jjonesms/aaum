@@ -1,0 +1,145 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+ "parameters": {
+        "automationAccountName": {
+            "type": "string"
+        },
+        "osType": {
+            "type": "string",
+            "allowedValues": [
+                "Windows",
+                "Linux"
+            ]
+        },
+        "deployTime": {
+            "type": "string",
+            "defaultValue": "[utcNow('u')]"
+        }
+        
+    },
+    "functions": [],
+    "variables": {
+        "startTime":"[dateTimeAdd(parameters('deployTime'),'PT45M')]",
+        "fixUpTime":"[replace(parameters('deployTime'), ' ','_')]",
+        "forScheduleName": "[replace(variables('fixUpTime'),':','_')]",
+        "softwareUpateScheduleWindowsName": "[concat('PoC', '_OneTime_','Windows','_', variables('forScheduleName'))]",
+        "softwareUpateScheduleLinuxName": "[concat('PoC', '_OneTime_','Linux','_', variables('forScheduleName'))]"
+    },
+    "resources": [
+        {
+          "condition":"[equals(parameters('osType'),'Windows')]",  
+          "type": "Microsoft.Automation/automationAccounts/softwareUpdateConfigurations",
+           "apiVersion": "2017-05-15-preview",
+           "name":"[concat(parameters('automationAccountName'), '/', variables('softwareUpateScheduleWindowsName'))]",
+           "properties": {
+
+               "scheduleInfo": {
+                   "isEnabled": false,
+                   "frequency": "Day",
+                   "startTime": "[variables('startTime')]",
+                   "interval": 1,
+                   "advancedSchedule": {
+                       "weekDays": [
+                           "Monday",
+                           "Tuesday",
+                           "Wednesday",
+                           "Thursday",
+                           "Friday"
+                       ]
+                   }
+                   
+               },
+               "updateConfiguration": {
+                   "windows": {
+                       "includedUpdateClassifications": "Critical,Security",
+                       "rebootSetting":"IfRequired"
+                   },
+                   "operatingSystem": "Windows",
+                   "targets": {
+                       "azureQueries": [
+                        {
+                            "scope":[
+                                 "[subscription().id]"
+                            ],
+                            "tagSettings": {
+
+                                "tags": {
+                                     "PoC-AAUM-Lifecycle": [
+                                            "DevTest"
+                                        ]
+                                },
+                                "filterOperator": "All"
+                            }
+                        }
+                       ]
+                   },
+                   "duration": "PT2H"   
+               },
+               "tasks": {
+                   "preTask": {
+                       "source":"UpdateManagement-TurnOnVms"
+                   }
+               }
+           }
+        },
+        {
+          "condition":"[equals(parameters('osType'),'Linux')]",  
+          "type": "Microsoft.Automation/automationAccounts/softwareUpdateConfigurations",
+           "apiVersion": "2017-05-15-preview",
+           "name":"[concat(parameters('automationAccountName'), '/', variables('softwareUpateScheduleLinuxName'))]",
+           "properties": {
+
+               "scheduleInfo": {
+                   "isEnabled": false,
+                   "frequency": "Day",
+                   "interval": 1,
+                   "startTime": "[variables('startTime')]",
+                   "advancedSchedule": {
+                        "weekDays": [
+                           "Monday",
+                           "Tuesday",
+                           "Wednesday",
+                           "Thursday",
+                           "Friday"
+                       ]
+                   }
+                   
+               },
+               "updateConfiguration": {
+
+                  "linux": {
+                      "includedPackageClassifications": "Critical, Security, Other"
+                  },
+                   "operatingSystem": "Linux",
+                   "targets": {
+                       "azureQueries": [
+                        {
+                            "scope":[
+                                 "[subscription().id]"
+                            ],
+                            "tagSettings": {
+
+                                "tags": {
+                                     "PoC-AAUM-Lifecycle": [
+                                            "DevTest"
+                                        ]
+                                },
+                                "filterOperator": "All"
+                            }
+                        }
+                       ]
+                   },
+                   "duration": "PT2H"
+                   
+               },
+               "tasks": {
+                   "preTask": {
+                       "source":"UpdateManagement-TurnOnVms"
+                   }
+               }
+           }
+        }
+    ],
+    "outputs": {}
+}
