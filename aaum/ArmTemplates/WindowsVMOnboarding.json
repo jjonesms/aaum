@@ -59,9 +59,9 @@
         "vm2012sku":"2012-R2-Datacenter-smalldisk",
         "vm2016sku":"2016-Datacenter-smalldisk",
         "vm2019sku": "2019-Datacenter-smalldisk",
-        "vm2012NicBase": "[concat(variables('vm2012BaseName'), 'nic')]",
-        "vm2016NicBase": "[concat(variables('vm2016BaseName'), 'nic')]",
-        "vm2019NicBase": "[concat(variables('vm2019BaseName'), 'nic')]",
+        "vm2012NicBase": "[concat(variables('vm2012BaseName'), '-nic')]",
+        "vm2016NicBase": "[concat(variables('vm2016BaseName'), '-nic')]",
+        "vm2019NicBase": "[concat(variables('vm2019BaseName'), '-nic')]",
         "tagName": "PoC-AAUM-Lifecycle",
         "tagValue": "DevTest"
     },
