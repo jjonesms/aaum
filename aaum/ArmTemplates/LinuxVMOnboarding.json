@@ -247,6 +247,36 @@
                 "name":"agentCopy",
                 "count": "[parameters('vmUb16Count')]"
             }
+        },
+        {
+            "name": "[concat(variables('vmUb16BaseName'), copyIndex(1), '/', 'customScript1')]",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "apiVersion": "2019-07-01",
+            "location": "[resourceGroup().location]",
+            "tags": {
+                "displayName": "disable auto updates"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Compute/virtualMachines/', variables('vmUb16BaseName'), copyIndex(1))]"
+            ],
+            "properties": {
+                "publisher": "Microsoft.Azure.Extensions",
+                "type": "CustomScript",
+                "typeHandlerVersion": "2.1",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "fileUris": [
+                        "[concat('artifactsLocation', '/scripts/customScript.sh', 'artifactsLocationSasToken')]"
+                    ]
+                },
+                "protectedSettings": {
+                    "commandToExecute": "sh disable-autoupdates.sh"
+                }
+            },
+            "copy": {
+                "name":"scriptCopy",
+                "count": "[parameters('vmUb16Count')]"
+            }
         }
     ],
     "outputs": {}
