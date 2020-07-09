@@ -197,7 +197,7 @@
             }
         },
         {
-            "condition":"[greater(parameters('vmUb18Count'),0)]",
+            "condition": "[and(greater(parameters('vmUb18Count'),0),equals(mod(copyIndex(1),2),0))]",
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "name": "[concat(variables('vmUb18BaseName'), copyIndex(1), '/', 'OMSExtension')]",
             "apiVersion": "2019-07-01",
@@ -223,7 +223,7 @@
             }
         },
         {
-            "condition":"[greater(parameters('vmUb16Count'),0)]",
+            "condition": "[and(greater(parameters('vmUb16Count'),0),equals(mod(copyIndex(1),2),0))]",  
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "name": "[concat(variables('vmUb16BaseName'), copyIndex(1), '/', 'OMSExtension')]",
             "apiVersion": "2019-07-01",

@@ -299,7 +299,8 @@
             }
         },
        {
-        "condition": "[greater(parameters('vm2012Count'),0)]",
+
+        "condition": "[and(greater(parameters('vm2012Count'),0),equals(mod(copyIndex(1),2),0))]",
         "type": "Microsoft.Compute/virtualMachines/extensions",
         "name": "[concat(variables('vm2012BaseName'),copyIndex(1),'/','OMSExtension')]",
         "apiVersion": "2019-07-01",
@@ -325,7 +326,7 @@
         }
     },
      {
-         "condition": "[greater(parameters('vm2016Count'),0)]",
+        "condition": "[and(greater(parameters('vm2016Count'),0),equals(mod(copyIndex(1),2),0))]",
         "type": "Microsoft.Compute/virtualMachines/extensions",
         "name": "[concat(variables('vm2016BaseName'),copyIndex(1),'/','OMSExtension')]",
         "apiVersion": "2019-07-01",
@@ -351,7 +352,7 @@
         }
     },
      {
-         "condition": "[greater(parameters('vm2019Count'),0)]",
+        "condition": "[and(greater(parameters('vm2019Count'),0),equals(mod(copyIndex(1),2),0))]",
         "type": "Microsoft.Compute/virtualMachines/extensions",
         "name": "[concat(variables('vm2019BaseName'),copyIndex(1),'/','OMSExtension')]",
         "apiVersion": "2019-07-01",
