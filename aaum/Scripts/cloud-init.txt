@@ -1,9 +1,4 @@
 #cloud-config
 runcmd:
     - sed -i 's/Unattended-Upgrade "1"/Unattended-Upgrade "0"/' /etc/apt/apt.conf.d/20auto-upgrades
-
-power_state:
-  delay: "+1"
-  mode: reboot
-  timeout: 30
-  condition: True
+    - /sbin/reboot
