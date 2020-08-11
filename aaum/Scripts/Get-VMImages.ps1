@@ -41,5 +41,7 @@ $imageSettings = @(
  % { Get-AzVMImage -Location $locationName -PublisherName $imageSettings[0].pubName -Offer $imageSettings[0].offerName -Sku $_ | ? {$_.Version -match $imageSettings[0].imageFilter}  | Select Skus, Version  }
 
 
+ <#
  $imageSettings[1].skus | `
  % {Get-AzVMImage -Location $locationName -PublisherName $imageSettings[1].pubName -Offer $imageSettings[1].offerName -Sku $_ | ? {$_.Version -match $imageSettings[1].imageFilter}  | Select Skus, Version -Last 1 }
+#>

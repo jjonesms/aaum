@@ -1,0 +1,254 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "adminUsername": {
+            "type": "string",
+            "defaultValue": "poc-linux-user01"
+        },
+        "adminPassword": {
+            "type": "securestring"
+        },
+        "vmSize": {
+            "type": "string",
+            "defaultValue":"Standard_D2_v3"
+        },
+        "vmRh76Count": {
+            "type": "int",
+            "defaultValue":2
+        },
+         "vmRh69Count": {
+            "type": "int",
+            "defaultValue":1
+        },
+        "imgVersionRh76": {
+            "type": "string",
+            "defaultValue": "latest"
+        },
+        "imgVersionRh69": {
+            "type": "string",
+            "defaultValue": "latest"
+        },
+        "deployTime": {
+            "type": "string",
+            "defaultValue":"[utcNow()]"
+        }
+    },
+    "variables": {  
+
+        "resourceGroupValues":"[split(resourceGroup().name,'-')]",
+        "uniqueValue":"[variables('resourceGroupValues')[3]]",
+        "workspaceName":"[concat('PoC-AAUM-Workspace-',variables('uniqueValue'))]",
+        "workspaceRGName":"[concat('PoC-AAUM-Mgmt-',variables('uniqueValue'),'-RG')]",
+        "vnetRGName":"[concat('PoC-AAUM-Network-',variables('uniqueValue'),'-RG')]",
+        "vnetName":"[concat('PoC-AAUM-Network-',variables('uniqueValue'))]",
+        "subnetName":"PoC-AAUM-VMS-Subnet01",
+        "vmRh76BaseName": "[concat('poc-rh76-',substring(uniqueString(resourceGroup().id,parameters('deployTime')),1,3))]",
+        "vmRh69BaseName":  "[concat('poc-rh69-',substring(uniqueString(resourceGroup().id,parameters('deployTime')),1,3))]",
+        "vmRh76Nic":"[concat(variables('vmRh76BaseName'), '-nic')]" ,
+        "vmRh69Nic":"[concat(variables('vmRh69BaseName'), '-nic')]",
+        "subnetRef": "[resourceId(variables('vnetRGName'),'Microsoft.Network/virtualNetworks/subnets',variables('vnetName'),variables('subnetName'))]",
+        "tagName": "PoC-AAUM-Lifecycle",
+        "tagValue": "DevTest",
+        "customDataConfig": "[concat('#include\n', 'https://raw.githubusercontent.com/jjonesms/aaum/master/aaum/Scripts/cloud-init.txt')]"
+    },
+    "resources": [
+        {
+            "condition":"[greater(parameters('vmRh76Count'),0)]",
+            "name": "[concat(variables('vmRh76Nic'), copyIndex(1))]",
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2019-07-01",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "subnet": {
+                                "id": "[variables('subnetRef')]"
+                            },
+                            "privateIPAllocationMethod": "Dynamic"
+                        }
+                    }
+                ]
+            },
+            "copy": {
+                "name":"nicCopy",
+                "count": "[parameters('vmRh76Count')]"
+            }
+        },
+        {
+            "condition":"[greater(parameters('vmRh69Count'),0)]",
+            "name": "[concat(variables('vmRh69Nic'), copyIndex(1))]",
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2019-07-01",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "subnet": {
+                                "id": "[variables('subnetRef')]"
+                            },
+                            "privateIPAllocationMethod": "Dynamic"
+                        }
+                    }
+                ]
+            },
+            "copy": {
+                "name":"nicCopy",
+                "count": "[parameters('vmRh69Count')]"
+            }
+        },
+        {
+            "condition":"[greater(parameters('vmRh76Count'),0)]",
+            "name": "[concat(variables('vmRh76BaseName'),copyIndex(1))]",
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "2019-07-01",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/networkInterfaces/', concat(variables('vmRh76Nic'),copyIndex(1)))]"
+            ],
+              "tags": {
+                "[variables('tagName')]": "[variables('tagValue')]"
+            },
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize":"[parameters('vmSize')]"
+                },
+                "storageProfile": {
+                    "osDisk": {
+                        "createOption": "fromImage",
+                        "managedDisk": {
+                            "storageAccountType": "Standard_LRS"
+                        }
+                    },
+                    "imageReference": {
+                        "publisher": "RedHat",
+                        "offer": "RHEL",
+                        "sku": "7.6",
+                        "version": "[parameters('imgVersionRh76')]"
+                    }
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('vmRh76Nic'),copyIndex(1)))]"
+                        }
+                    ]
+                },
+                "osProfile": {
+                    "computerName": "[concat(variables('vmRh76BaseName'),copyIndex(1))]",
+                    "adminUsername": "[parameters('adminUsername')]",
+                    "adminPassword": "[parameters('adminPassword')]"
+                }
+            },
+            "copy": {
+                "name":"vmCopy",
+                "count":"[parameters('vmRh76Count')]"
+            }
+        },
+        {
+            "condition":"[greater(parameters('vmRh69Count'),0)]",
+            "name": "[concat(variables('vmRh69BaseName'),copyIndex(1))]",
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "2019-07-01",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/networkInterfaces/', concat(variables('vmRh69Nic'),copyIndex(1)))]"
+            ],
+              "tags": {
+                "[variables('tagName')]": "[variables('tagValue')]"
+            },
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize":"[parameters('vmSize')]"
+                },
+                "storageProfile": {
+                    "osDisk": {
+                        "createOption": "fromImage",
+                        "managedDisk": {
+                            "storageAccountType": "Standard_LRS"
+                        }
+                    },
+                    "imageReference": {
+                        "publisher": "RedHat",
+                        "offer": "RHEL",
+                        "sku": "6.9",
+                        "version": "[parameters('imgVersionRh69')]"
+                    }
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('vmRh69Nic'),copyIndex(1)))]"
+                        }
+                    ]
+                },
+                "osProfile": {
+                    "computerName": "[concat(variables('vmRh69BaseName'),copyIndex(1))]",
+                    "adminUsername": "[parameters('adminUsername')]",
+                    "adminPassword": "[parameters('adminPassword')]"
+                }
+            },
+            "copy": {
+                "name":"vmCopy",
+                "count":"[parameters('vmRh69Count')]"
+            }
+        },
+        {
+            "condition": "[and(greater(parameters('vmRh76Count'),0),equals(mod(copyIndex(1),2),0))]",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(variables('vmRh76BaseName'), copyIndex(1), '/', 'OMSExtension')]",
+            "apiVersion": "2019-07-01",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Compute/virtualMachines/', variables('vmRh76BaseName'),copyIndex(1))]"
+            ],
+            "properties": {
+                "publisher": "Microsoft.EnterpriseCloud.Monitoring",
+                "type": "OmsAgentForLinux",
+                "autoUpgradeMinorVersion": true,
+                "typeHandlerVersion": "1.0",
+                "settings": {
+                    "workspaceId": "[reference(resourceId(variables('workspaceRGName'),'Microsoft.OperationalInsights/workspaces/', variables('workspaceName')), '2015-03-20').customerId]"
+                },
+                "protectedSettings": {
+                    "workspaceKey": "[listKeys(resourceId(variables('workspaceRGName'),'Microsoft.OperationalInsights/workspaces/', variables('workspaceName')), '2015-03-20').primarySharedKey]"
+                }
+            },
+            "copy": {
+                "name":"agentCopy",
+                "count": "[parameters('vmRh76Count')]"
+            }
+        },
+        {
+            "condition": "[and(greater(parameters('vmRh69Count'),0),equals(mod(copyIndex(1),2),0))]",  
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(variables('vmRh69BaseName'), copyIndex(1), '/', 'OMSExtension')]",
+            "apiVersion": "2019-07-01",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Compute/virtualMachines/', variables('vmRh69BaseName'),copyIndex(1))]"
+            ],
+            "properties": {
+                "publisher": "Microsoft.EnterpriseCloud.Monitoring",
+                "type": "OmsAgentForLinux",
+                "autoUpgradeMinorVersion": true,
+                "typeHandlerVersion": "1.0",
+                "settings": {
+                    "workspaceId": "[reference(resourceId(variables('workspaceRGName'),'Microsoft.OperationalInsights/workspaces/', variables('workspaceName')), '2015-03-20').customerId]"
+                },
+                "protectedSettings": {
+                    "workspaceKey": "[listKeys(resourceId(variables('workspaceRGName'),'Microsoft.OperationalInsights/workspaces/', variables('workspaceName')), '2015-03-20').primarySharedKey]"
+                }
+            },
+            "copy": {
+                "name":"agentCopy",
+                "count": "[parameters('vmRh69Count')]"
+            }
+        }
+    ],
+    "outputs": {}
+}
