@@ -70,18 +70,8 @@ $startTime = (get-date).AddMinutes($minutesFromNow).ToString("HH:mm")
 $dynamicGroupQuery = New-AzAutomationUpdateManagementAzureQuery -ResourceGroupName $rgName  -AutomationAccountName $automationAccountName -Scope $queryScope -Tag $envTag -Verbose
 $AzureQueries = @($dynamicGroupQuery)
 
-$schedule = New-AzAutomationSchedule `
-  -Name $scheduleName 
-  -TimeZone $TimeZone 
-  -AutomationAccountName $automationAccountName 
-  -StartTime $startTime 
-  -OneTime  
-  -ResourceGroupName $rgName 
-  -ForUpdateConfiguration 
-  -Verbose
+$schedule = New-AzAutomationSchedule  -Name $scheduleName -TimeZone $TimeZone -AutomationAccountName $automationAccountName -StartTime $startTime -OneTime  -ResourceGroupName $rgName  -ForUpdateConfiguration -Verbose
 
- # Set schedule to be in disabled state
-  Set-AzAutomationSchedule -IsEnabled $false -Name $scheduleName -AutomationAccountName $automationAccountName -ResourceGroupName $rgName
 
 if($deployOS -match 'Windows'){
     
@@ -97,12 +87,16 @@ if($deployOS -match 'Windows'){
     -PreTaskRunbookName $preScript `
     -PostTaskRunbookName $postScript `
     -Verbose
+
+    #Disable schedule
+    $scheduleConfig = Get-AzAutomationSchedule -ResourceGroupName $rgName -AutomationAccountName $automationAccountName | ? {$_.Name -match $scheduleName}
+    Set-AzAutomationSchedule -IsEnabled $false -Name $scheduleConfig.Name -AutomationAccountName $automationAccountName -ResourceGroupName $rgName
    
 }
 if($deployOS -match 'Linux'){
 
     #run for creating a schedule for Linux 
-    New-AzAutomationSoftwareUpdateConfiguration `
+   New-AzAutomationSoftwareUpdateConfiguration `
     -ResourceGroupName $rgName `
     -AutomationAccountName $automationAccountName `
     -Schedule $schedule `
@@ -113,6 +107,11 @@ if($deployOS -match 'Linux'){
     -PreTaskRunbookName $preScript `
     -PostTaskRunbookName $postScript `
     -Verbose
+
+    #Disable schedule
+    $scheduleConfig = Get-AzAutomationSchedule -ResourceGroupName $rgName -AutomationAccountName $automationAccountName | ? {$_.Name -match $scheduleName}
+    Set-AzAutomationSchedule -IsEnabled $false -Name $scheduleConfig.Name -AutomationAccountName $automationAccountName -ResourceGroupName $rgName
 }
+
 
 
