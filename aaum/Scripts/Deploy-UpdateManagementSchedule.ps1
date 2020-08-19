@@ -19,6 +19,8 @@
     .PARAMETER deployOS
         Determines which operating system type the schedule is deployed for. The default is Windows.
         Specify Linux if you want to deploy a schedule for Linux
+    .PARAMETER enableSchedule
+         Schedule for deployment is disabled by default
 
     .NOTES
         In order to create the schedule, the following cmdlets are used:
@@ -40,7 +42,8 @@ param(
     [string]$automationAccountName,
     [string]$rgName,
     [int]$minutesFromNow = 45,
-    [string]$deployOS = 'Windows'
+    [string]$deployOS = 'Windows',
+    [bool]$enableSchedule = $false
 )
 
 $subscriptionId = (Get-AzContext).Subscription.Id
@@ -71,12 +74,12 @@ $dynamicGroupQuery = New-AzAutomationUpdateManagementAzureQuery -ResourceGroupNa
 $AzureQueries = @($dynamicGroupQuery)
 
 $schedule = New-AzAutomationSchedule  -Name $scheduleName -TimeZone $TimeZone -AutomationAccountName $automationAccountName -StartTime $startTime -OneTime  -ResourceGroupName $rgName  -ForUpdateConfiguration -Verbose
-
+$supConfig = $null
 
 if($deployOS -match 'Windows'){
     
     #run for creating a schedule for Windows
-    New-AzAutomationSoftwareUpdateConfiguration `
+    $supConfig = New-AzAutomationSoftwareUpdateConfiguration `
     -ResourceGroupName $rgName `
     -AutomationAccountName $automationAccountName `
     -Schedule $schedule `
@@ -87,16 +90,12 @@ if($deployOS -match 'Windows'){
     -PreTaskRunbookName $preScript `
     -PostTaskRunbookName $postScript `
     -Verbose
-
-    #Disable schedule
-    $scheduleConfig = Get-AzAutomationSchedule -ResourceGroupName $rgName -AutomationAccountName $automationAccountName | ? {$_.Name -match $scheduleName}
-    Set-AzAutomationSchedule -IsEnabled $false -Name $scheduleConfig.Name -AutomationAccountName $automationAccountName -ResourceGroupName $rgName
    
 }
 if($deployOS -match 'Linux'){
 
     #run for creating a schedule for Linux 
-   New-AzAutomationSoftwareUpdateConfiguration `
+    $supConfig = New-AzAutomationSoftwareUpdateConfiguration `
     -ResourceGroupName $rgName `
     -AutomationAccountName $automationAccountName `
     -Schedule $schedule `
@@ -108,10 +107,12 @@ if($deployOS -match 'Linux'){
     -PostTaskRunbookName $postScript `
     -Verbose
 
-    #Disable schedule
-    $scheduleConfig = Get-AzAutomationSchedule -ResourceGroupName $rgName -AutomationAccountName $automationAccountName | ? {$_.Name -match $scheduleName}
-    Set-AzAutomationSchedule -IsEnabled $false -Name $scheduleConfig.Name -AutomationAccountName $automationAccountName -ResourceGroupName $rgName
 }
 
+if($supConfig)
+{
 
+    $scheduleConfig = Get-AzAutomationSchedule -ResourceGroupName $rgName -AutomationAccountName $automationAccountName | ? {$_.Name -match $scheduleName}
+    Set-AzAutomationSchedule -IsEnabled $enableSchedule -Name $scheduleConfig.Name -AutomationAccountName $automationAccountName -ResourceGroupName $rgName
 
+}
