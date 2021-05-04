@@ -23,7 +23,8 @@
                 "JapanEast",
                 "UKSouth",
                 "WestEurope",
-                "USGovVirginia"
+                "USGovVirginia",
+                "USGovArizona"
        ]
         },
         "pricingTier": {
